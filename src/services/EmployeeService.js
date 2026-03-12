@@ -37,3 +37,8 @@ export async function getEmployees() {
   return mockEmployees;
 
 }
+
+export async function changePassword(resetToken, newPassword) {
+  await new Promise(resolve => setTimeout(resolve, 400));
+  console.log("Mock: password changed", { resetToken, newPassword });
+}

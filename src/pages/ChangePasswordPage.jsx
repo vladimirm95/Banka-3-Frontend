@@ -51,9 +51,9 @@ export default function ChangePasswordPage() {
         <img src="/bank-logo.png" alt="logo" className="bank-logo" />
         <img src="/menu-icon.png" alt="menu" className="menu-icon" />
 
-        <div className="profile-page">
-          <div className="profile-card cp-card">
-            <h2 className="profile-title">Promena lozinke</h2>
+        <div className="cp-page-center">
+          <div className="cp-card">
+            <h2 className="cp-title">Promena lozinke</h2>
 
             <form onSubmit={handleSubmit}>
               <div className="cp-fields">
@@ -97,17 +97,17 @@ export default function ChangePasswordPage() {
                 {successMessage && <p className="cp-success">{successMessage}</p>}
               </div>
 
-              <div className="profile-actions" style={{ marginTop: 32 }}>
+              <div className="cp-actions">
                 <button
                     type="button"
-                    className="btn-secondary-outline"
+                    className="cp-btn-back"
                     onClick={() => navigate(`/employees/${id}`)}
                 >
                   Nazad
                 </button>
                 <button
                     type="submit"
-                    className="btn-uredi"
+                    className="cp-btn-submit"
                     disabled={submitting}
                 >
                   {submitting ? "Čuvanje..." : "Promeni lozinku"}
