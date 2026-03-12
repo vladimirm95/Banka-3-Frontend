@@ -61,7 +61,7 @@ export async function getEmployees() {
 export async function changePassword(resetToken, newPassword) {
   await new Promise(resolve => setTimeout(resolve, 400));
   console.log("Mock: password changed", { resetToken, newPassword });
-
+}
 export async function getEmployeeById(employeeId) {
 
   const found = mockEmployees.find((e) => e.id === employeeId);
@@ -84,5 +84,4 @@ export async function getEmployeeById(employeeId) {
     active: found.active,
     jmbg: found.jmbg ?? "",
   };
-main
 }
