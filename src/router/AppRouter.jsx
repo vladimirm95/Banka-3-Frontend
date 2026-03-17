@@ -6,6 +6,8 @@ import EmployeeDetailsPage from "../pages/EmployeeDetailsPage.jsx";
 import CreateEmployeePage from "../pages/CreateEmployeePage.jsx";
 import EditEmployeePage from "../pages/EditEmployeePage.jsx";
 import ChangePasswordPage from "../pages/ChangePasswordPage.jsx";
+import RecipientsPage from "../pages/RecipientsPage.jsx";
+import PaymentsPage from "../pages/PaymentsPage.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 
 export default function AppRouter() {
@@ -22,6 +24,8 @@ export default function AppRouter() {
         <Route path="/employees/:id/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
         <Route path="/employees/:id" element={<ProtectedRoute><EmployeeDetailsPage /></ProtectedRoute>} />
         <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+        <Route path="/recipients" element={<RecipientsPage />} />
+        <Route path="/payments" element={<PaymentsPage />} />
       </Routes>
     </BrowserRouter>
   );
