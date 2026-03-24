@@ -1,0 +1,132 @@
+.portfolio-page {
+    min-height: 100vh;
+    padding: 32px;
+    background: #050b16;
+    color: white;
+}
+
+.portfolio-header {
+    margin-bottom: 24px;
+}
+
+.portfolio-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+}
+
+.portfolio-header p {
+    margin: 0;
+    color: #94a3b8;
+}
+
+.portfolio-summary-card {
+    background: #0b1526;
+    border: 1px solid #1a2942;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.portfolio-summary-card span {
+    display: block;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.portfolio-summary-card h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.portfolio-table-wrapper {
+    background: #0b1526;
+    border: 1px solid #1a2942;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.portfolio-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #1a2942;
+}
+
+.portfolio-table th {
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.portfolio-table td {
+    font-size: 15px;
+}
+
+.profit-positive {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.profit-negative {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.portfolio-sell-button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.portfolio-sell-button:hover {
+    opacity: 0.9;
+}
+.portfolio-summary-card {
+    background: #0b1526;
+    border: 1px solid #1a2942;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.portfolio-summary-card span {
+    display: block;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.portfolio-summary-card h2 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.profit-positive {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.profit-negative {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.portfolio-empty-state {
+    padding: 24px;
+    color: #94a3b8;
+}
+.portfolio-result-label {
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 14px;
+}
