@@ -13,7 +13,33 @@ function normalizeClient(raw) {
     address: raw.address || "",
     dateOfBirth: raw.birth_date || raw.date_of_birth || null,
     gender: raw.gender || "",
+    username: raw.username || "",
+    active: raw.active,
   };
+}
+
+export async function getClients(params = {}) {
+  const response = await api.get("/clients", { params });
+  const clients = response.data.clients ?? response.data;
+  if (!Array.isArray(clients)) {
+    return clients?.id ? [normalizeClient(clients)] : [];
+  }
+  return clients.map(normalizeClient);
+}
+
+export async function getClientById(clientId) {
+  try {
+    const response = await api.get(`/clients/${clientId}`);
+    const client = response.data.client ?? response.data;
+    if (client?.id) {
+      return normalizeClient(client);
+    }
+  } catch {
+
+  }
+
+  const clients = await getClients();
+  return clients.find((client) => String(client.id) === String(clientId)) ?? null;
 }
 
 export async function getClientByEmail(email) {

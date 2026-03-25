@@ -89,8 +89,9 @@ export default function MenuDropdown() {
     {
       title: "Administracija / HR",
       items: [
-        { label: "Employee list", path: "/employees" },
-        { label: "Employee details", path: "/employees/:id" },
+        { label: "Lista klijenata", path: "/clients" },
+        { label: "Pregled računa", path: "/admin/accounts" },
+        { label: "Lista zaposlenih", path: "/employees" },
       ],
     },
   ];
