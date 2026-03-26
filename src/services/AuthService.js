@@ -4,12 +4,10 @@ import { clearClientCache } from "./ClientService.js";
 export const login = async (email, password) => {
   const response = await api.post("/login", { email, password });
   
-  // PAŽNJA: Proveri velika/mala slova. 
-  // Tvoj Gateway (handlers.go:193) šalje "accessToken", ne "access_token"
   return {
-    accessToken: response.data.accessToken,   // Promenjeno sa access_token
-    refreshToken: response.data.refreshToken, // Promenjeno sa refresh_token
-    userId: response.data.userId,             
+    accessToken: response.data.accessToken || response.data.access_token,
+    refreshToken: response.data.refreshToken || response.data.refresh_token,
+    userId: response.data.userId || response.data.user_id,
   };
 };
 
@@ -60,4 +58,14 @@ export const getTokenPayload = () => {
 
 export const getCurrentUserEmail = () => {
   return getTokenPayload()?.sub || null;
+};
+
+export const beginTotpSetup = async () => {
+  const response = await api.post("/totp/setup/begin");
+  return response.data;
+};
+
+export const confirmTotpSetup = async (code) => {
+  const response = await api.post("/totp/setup/confirm", { code });
+  return response.data;
 };

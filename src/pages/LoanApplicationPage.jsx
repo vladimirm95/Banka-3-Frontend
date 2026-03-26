@@ -9,8 +9,13 @@ export default function CreateLoanRequestPage() {
   const [selectedAccount, setSelectedAccount] = useState("");
   const [amount, setAmount] = useState("");
   const [period, setPeriod] = useState("");
+  const [salary, setSalary] = useState("");
+  const [employmentStatus, setEmploymentStatus] = useState("full_time");
+  const [employmentPeriod, setEmploymentPeriod] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [purpose, setPurpose] = useState("");
   const [monthlyRate, setMonthlyRate] = useState(null);
-  
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,7 +65,13 @@ export default function CreateLoanRequestPage() {
         amount: Number(amount),
         period: Number(period),
         currency: accObj ? accObj.currency : "RSD",
-        loan_type: "GOTOVINSKI" // Možeš dodati i select za tip kredita
+        loan_type: "GOTOVINSKI",
+        salary: Number(salary),
+        employment_status: employmentStatus,
+        employment_period: Number(employmentPeriod),
+        phone_number: phoneNumber,
+        purpose: purpose,
+        interest_rate_type: "fixed",
       });
 
       setSuccess("Zahtev za kredit je uspešno podnet.");
@@ -118,6 +129,48 @@ export default function CreateLoanRequestPage() {
               setPeriod(e.target.value);
               calculateRate(amount, e.target.value);
             }}
+          />
+
+          <input
+            type="text"
+            placeholder="Svrha kredita"
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+          />
+
+          <input
+            type="number"
+            placeholder="Mesečna primanja (plata)"
+            value={salary}
+            onChange={(e) => setSalary(e.target.value)}
+          />
+
+          <input
+            type="text"
+            placeholder="Broj telefona"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+          />
+
+          <select
+            value={employmentStatus}
+            onChange={(e) => setEmploymentStatus(e.target.value)}
+            style={{
+              height: '52px', borderRadius: '12px', background: '#1e293b',
+              color: 'white', border: '1px solid #334155', padding: '0 10px', marginBottom: '10px'
+            }}
+          >
+            <option value="full_time">Stalni radni odnos</option>
+            <option value="part_time">Honorarni rad</option>
+            <option value="self_employed">Samostalna delatnost</option>
+            <option value="unemployed">Nezaposlen</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Staž (meseci zaposlenja)"
+            value={employmentPeriod}
+            onChange={(e) => setEmploymentPeriod(e.target.value)}
           />
 
           {monthlyRate && (

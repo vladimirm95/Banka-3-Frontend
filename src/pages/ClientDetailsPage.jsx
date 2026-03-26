@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import { getClientById } from "../services/ClientService";
-import { getAccounts } from "../services/AccountsService";
+import { getAccounts } from "../services/AccountService";
 import "./ClientDetailsPage.css";
 
 function formatDate(value) {

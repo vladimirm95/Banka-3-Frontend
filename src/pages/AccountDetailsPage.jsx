@@ -120,9 +120,7 @@ export default function AccountDetailsPage() {
                 ) : (
                     <div className="ad-txn-list">
                         {transactions.map((tx, index) => {
-                            // Backend šalje 'final_amount' ili 'amount', proveravamo oba
-                            const amt = tx.final_amount || tx.amount || 0;
-                            // Proveravamo da li je odliv (negativan prikaz)
+                            const amt = tx.final_amount || tx.initial_amount || tx.amount || 0;
                             const isDebit = tx.from_account === account.account_number;
 
                             return (
@@ -133,7 +131,7 @@ export default function AccountDetailsPage() {
                                     <div className="ad-txn-info">
                                         <p className="ad-txn-desc">{tx.purpose || tx.reason || "Transakcija"}</p>
                                         <p className="ad-txn-date">
-                                            {tx.timestamp ? new Date(tx.timestamp * 1000).toLocaleDateString("sr-RS") : "---"}
+                                            {tx.timestamp ? new Date(tx.timestamp).toLocaleDateString("sr-RS") : "---"}
                                         </p>
                                     </div>
                                     <p className={`ad-txn-amount ${!isDebit ? "ad-txn-amount--credit" : ""}`}>

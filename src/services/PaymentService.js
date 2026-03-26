@@ -7,7 +7,7 @@ export async function getRecipients() {
 
 export async function getTransactions(filters = {}) {
   const response = await api.get("/transactions", { params: filters });
-  return response.data.getTransactions || [];
+  return Array.isArray(response.data) ? response.data : [];
 }
 
 export async function createRecipient(recipientData) {
@@ -25,14 +25,14 @@ export async function deleteRecipient(id) {
   return response.data;
 }
 
-export async function createPayment(paymentData) {
-  // Backend: POST /transactions/payments (sa s na kraju)
-  const response = await api.post("/transactions/payments", paymentData);
+export async function createPayment(paymentData, totpCode) {
+  const config = totpCode ? { headers: { TOTP: totpCode } } : {};
+  const response = await api.post("/transactions/payment", paymentData, config);
   return response.data;
 }
 
-export async function createTransfer(transferData) {
-  // Backend: POST /transactions/transfers (sa s na kraju)
-  const response = await api.post("/transactions/transfers", transferData);
+export async function createTransfer(transferData, totpCode) {
+  const config = totpCode ? { headers: { TOTP: totpCode } } : {};
+  const response = await api.post("/transactions/transfer", transferData, config);
   return response.data;
 }

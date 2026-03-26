@@ -10,7 +10,7 @@ function normalizeEmployee(d) {
     lastName: d.last_name,
     email: d.email,
     position: d.position,
-    phone: d.phone_number,
+    phone: d.phone_number || d.phone,
     address: d.address,
     active: d.active,
     gender: d.gender,
@@ -35,16 +35,35 @@ export async function getEmployeeById(id) {
   return normalizeEmployee(response.data);
 }
 
-// 3. KREIRANJE novog zaposlenog (Ova funkcija ti je falila)
-export async function createEmployee(employeeData) {
-  // Podaci se šalju u formatu koji backend očekuje (obično onako kako ih prikupiš iz forme)
-  const response = await api.post("/employees", employeeData);
+// 3. KREIRANJE novog zaposlenog
+export async function createEmployee(data) {
+  const response = await api.post("/employees", {
+    first_name: data.firstName,
+    last_name: data.lastName,
+    birth_date: data.dateOfBirth,
+    gender: data.gender,
+    email: data.email,
+    phone: data.phoneNumber,
+    address: data.address,
+    username: data.username,
+    position: data.position,
+    department: data.department,
+  });
   return response.data;
 }
 
 // 4. AZURIRANJE postojećeg zaposlenog
-export async function updateEmployee(id, employeeData) {
-  const response = await api.put(`/employees/${id}`, employeeData);
+export async function updateEmployee(id, data) {
+  const response = await api.patch(`/employees/${id}`, {
+    last_name: data.lastName,
+    gender: data.gender,
+    phone: data.phoneNumber,
+    address: data.address,
+    position: data.position,
+    department: data.department,
+    active: data.active,
+    permissions: data.permissions,
+  });
   return response.data;
 }
 

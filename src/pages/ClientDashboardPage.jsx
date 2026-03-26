@@ -99,7 +99,7 @@ export default function ClientDashboardPage() {
     const quickActions = [
         {
             label: "Uplata",
-            target: "/deposit",
+            target: "/payment",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
@@ -141,7 +141,7 @@ export default function ClientDashboardPage() {
             icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>,
         },
         {
-            label: "Plaćanja", target: "/payment-history",
+            label: "Plaćanja", target: "/payments",
             icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>,
         },
         {
@@ -237,10 +237,13 @@ export default function ClientDashboardPage() {
                     <p className="dash-section-title">Poslednje transakcije</p>
                 </div>
                 <div className="dash-tx-list">
-                    {(Array.isArray(transactions) ? transactions : []).slice(0, 5).map((tx, index) => (
+                    {(Array.isArray(transactions) ? transactions : []).slice(0, 5).map((tx, index) => {
+                        const amt = tx.final_amount || tx.initial_amount || 0;
+                        const isIncoming = mainAccount && tx.to_account === mainAccount.account_number;
+                        return (
                         <div key={tx.transaction_code || `${tx.id}-${index}`} className="dash-tx-row">
-                            <div className={`dash-tx-icon ${tx.amount > 0 ? "dash-tx-icon--in" : "dash-tx-icon--out"}`}>
-                                {tx.amount > 0 ? (
+                            <div className={`dash-tx-icon ${isIncoming ? "dash-tx-icon--in" : "dash-tx-icon--out"}`}>
+                                {isIncoming ? (
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <line x1="12" y1="5" x2="12" y2="19"/>
@@ -255,14 +258,15 @@ export default function ClientDashboardPage() {
                                 )}
                             </div>
                             <div className="dash-tx-info">
-                                <p className="dash-tx-desc">{tx.desc}</p>
-                                <p className="dash-tx-date">{new Date(tx.date).toLocaleDateString("sr-RS")}</p>
+                                <p className="dash-tx-desc">{tx.purpose || tx.reason || "Transakcija"}</p>
+                                <p className="dash-tx-date">{tx.timestamp ? new Date(tx.timestamp).toLocaleDateString("sr-RS") : "---"}</p>
                             </div>
-                            <p className={`dash-tx-amt ${tx.amount > 0 ? "dash-tx-amt--in" : ""}`}>
-                                {tx.amount > 0 ? "+" : ""}{fmt(tx.amount, "RSD")}
+                            <p className={`dash-tx-amt ${isIncoming ? "dash-tx-amt--in" : ""}`}>
+                                {isIncoming ? "+" : "-"}{fmt(amt, mainAccount?.currency || "RSD")}
                             </p>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
             </div>

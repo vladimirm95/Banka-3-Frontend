@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { transferFunds } from "../services/TransactionService";
+import { createPayment } from "../services/PaymentService";
 import Sidebar from "../components/Sidebar.jsx";
+import TotpModal from "../components/TotpModal.jsx";
 import "./PaymentPage.css";
 
 const EMPTY_FORM = {
@@ -46,6 +47,9 @@ export default function PaymentPage() {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [showTotp, setShowTotp] = useState(false);
+    const [pendingPayload, setPendingPayload] = useState(null);
+    const [totpError, setTotpError] = useState("");
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -53,7 +57,7 @@ export default function PaymentPage() {
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
-    async function handleSubmit(e) {
+    function handleSubmit(e) {
         e.preventDefault();
         setSubmitError("");
         setSuccessMsg("");
@@ -64,26 +68,31 @@ export default function PaymentPage() {
             return;
         }
 
+        setPendingPayload({
+            sender_account: form.sender_account.trim(),
+            recipient_account: form.recipient_account.trim(),
+            recipient_name: form.recipient_name.trim(),
+            amount: Number(form.amount),
+            payment_code: form.payment_code.trim(),
+            reference_number: form.reference_number.trim(),
+            purpose: form.purpose.trim(),
+        });
+        setTotpError("");
+        setShowTotp(true);
+    }
+
+    async function handleTotpConfirm(code) {
         try {
             setSubmitting(true);
-            await transferFunds({
-                sender_account: form.sender_account.trim(),
-                recipient_account: form.recipient_account.trim(),
-                recipient_name: form.recipient_name.trim(),
-                amount: Number(form.amount),
-                payment_code: form.payment_code.trim(),
-                reference_number: form.reference_number.trim(),
-                purpose: form.purpose.trim(),
-            });
+            setTotpError("");
+            await createPayment(pendingPayload, code);
+            setShowTotp(false);
+            setPendingPayload(null);
             setSuccessMsg("Transakcija je uspešno izvršena.");
             setForm(EMPTY_FORM);
         } catch (err) {
-            setSubmitError(
-                err.response?.data?.message ||
-                err.response?.data?.error ||
-                err.message ||
-                "Greška pri izvršavanju transakcije."
-            );
+            const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Greška pri verifikaciji.";
+            setTotpError(msg);
         } finally {
             setSubmitting(false);
         }
@@ -258,6 +267,14 @@ export default function PaymentPage() {
                     </div>
 
                 </form>
+
+                <TotpModal
+                    open={showTotp}
+                    onConfirm={handleTotpConfirm}
+                    onCancel={() => { setShowTotp(false); setTotpError(""); }}
+                    loading={submitting}
+                    error={totpError}
+                />
             </div>
         </div>
     );

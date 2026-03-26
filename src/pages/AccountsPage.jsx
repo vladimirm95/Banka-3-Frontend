@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAccounts } from "../services/AccountsService";
+import { getAccounts } from "../services/AccountService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./AccountsPage.css";
 

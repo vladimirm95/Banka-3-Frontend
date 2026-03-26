@@ -74,8 +74,10 @@ export default function LoginPage() {
       } else {
         setMessage("Mrežna greška. Proverite da li je Backend pokrenut.");
       }
-      // Brišemo sve ako login nije uspeo
-      localStorage.clear();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userRole");
     } finally {
       setLoading(false);
     }

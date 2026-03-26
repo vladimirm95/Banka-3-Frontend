@@ -93,11 +93,11 @@ export default function CreateEmployeePage() {
     setLoading(true);
 
     try {
-      let dateOfBirth = 0;
+      let dateOfBirth = "";
 
       if (form.datum) {
         const [dd, mm, yyyy] = form.datum.split(".");
-        dateOfBirth = Math.floor(new Date(`${yyyy}-${mm}-${dd}`).getTime() / 1000);
+        dateOfBirth = `${yyyy}-${mm}-${dd}`;
       }
 
       const response = await createEmployee({
@@ -129,7 +129,7 @@ export default function CreateEmployeePage() {
             phoneNumber: form.telefon,
             address: form.adresa,
             position: form.pozicija,
-            department: "form.department",
+            department: form.department,
             active: true,
             permissions: form.permissions,
           });
