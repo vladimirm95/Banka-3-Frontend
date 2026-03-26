@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { validatePasswordStrength } from "../utils/validators";
 import { confirmPasswordReset } from "../services/AuthService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./ChangePasswordPage.css";
 
 export default function ChangePasswordPage() {
@@ -73,6 +74,7 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="page-bg">
+      <Sidebar/>
       <div className="cp-page">
         <div className="cp-card">
           <div className="cp-header">

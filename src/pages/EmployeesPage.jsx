@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import EmployeeTable from "../components/employees/EmployeeTable";
 import { getEmployees } from "../services/EmployeeService";
-import MenuDropdown from "../components/MenuDropdown";
+import Sidebar from "../components/Sidebar.jsx";
 import "./EmployeesPage.css";
 
 function EmployeesPage() {
@@ -44,15 +44,12 @@ function EmployeesPage() {
   const filteredEmployees = useMemo(() => {
     return employees.filter((employee) => {
       const searchLower = searchTerm.toLowerCase();
-
       const matchesSearch =
-        (employee.first_name || "").toLowerCase().includes(searchLower) ||
-        (employee.last_name || "").toLowerCase().includes(searchLower) ||
-        (employee.email || "").toLowerCase().includes(searchLower);
-
+          (employee.first_name || "").toLowerCase().includes(searchLower) ||
+          (employee.last_name || "").toLowerCase().includes(searchLower) ||
+          (employee.email || "").toLowerCase().includes(searchLower);
       const matchesPosition =
-        !filterPosition || employee.position === filterPosition;
-
+          !filterPosition || employee.position === filterPosition;
       return matchesSearch && matchesPosition;
     });
   }, [employees, searchTerm, filterPosition]);
@@ -68,94 +65,94 @@ function EmployeesPage() {
 
   if (loading) {
     return (
-      <div className="page-bg">
-        <img src="/bank-logo.png" alt="logo" className="bank-logo" />
-        <MenuDropdown />
-        <div className="content-wrapper">
-          <p>Učitavanje...</p>
+        <div className="page-bg">
+        <Sidebar />
+          <div className="content-wrapper">
+            <p style={{ color: "#475569", padding: "80px 24px", textAlign: "center" }}>Učitavanje...</p>
+          </div>
         </div>
-      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="page-bg">
-        <img src="/bank-logo.png" alt="logo" className="bank-logo" />
-        <MenuDropdown />
-        <div className="content-wrapper">
-          <p style={{ color: "#e74c3c" }}>{error}</p>
+        <div className="page-bg">
+        <Sidebar />
+          <div className="content-wrapper">
+            <p style={{ color: "#f87171", padding: "80px 24px", textAlign: "center" }}>{error}</p>
+          </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="page-bg">
-      <img src="/bank-logo.png" alt="logo" className="bank-logo" />
-      <MenuDropdown />
+      <div className="page-bg">
+        <Sidebar />
 
-      <div className="content-wrapper">
-        <div className="employee-card">
-          {/* Gornji naslovni blok */}
-          <div className="employee-topbar">
-            <div className="employee-title-block">
-              <p className="employee-eyebrow">UPRAVLJANJE ZAPOSLENIMA</p>
-              <h1>Zaposleni</h1>
-              <p className="employee-subtitle">
-                Pregled, pretraga i upravljanje zaposlenima u sistemu.
-              </p>
+        <div className="content-wrapper">
+          <div className="employee-card">
+            <div className="employee-topbar">
+              <div className="employee-title-block">
+                <p className="employee-eyebrow">UPRAVLJANJE ZAPOSLENIMA</p>
+                <h1>Zaposleni</h1>
+                <p className="employee-subtitle">
+                  Pregled, pretraga i upravljanje zaposlenima u sistemu.
+                </p>
+              </div>
+
+              <button className="add-btn" onClick={openCreateEmployee}>
+                + Dodaj zaposlenog
+              </button>
             </div>
 
-            <button className="add-btn" onClick={openCreateEmployee}>
-              + Dodaj zaposlenog
-            </button>
-          </div>
+            <div className="employee-toolbar">
+              <div className="toolbar-row">
+                <div className="search-wrapper">
+                <span className="search-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </span>
+                  <input
+                      className="search"
+                      placeholder="Pretraga po imenu, prezimenu ili email-u"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <div className="employee-toolbar">
-          <div className="toolbar-row">
-            <div className="search-wrapper">
-              <span className="search-icon">⌕</span>
-              <input
-                className="search"
-                placeholder="Pretraga po imenu, prezimenu ili email-u"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="toolbar-actions">
+                <select
+                    className="position-filter"
+                    value={filterPosition}
+                    onChange={(e) => setFilterPosition(e.target.value)}
+                >
+                  <option value="">Sve pozicije</option>
+                  {uniquePositions.map((position) => (
+                      <option key={position} value={position}>
+                        {position}
+                      </option>
+                  ))}
+                </select>
+
+                <button className="reset-btn" onClick={handleResetFilters}>
+                  Reset filtera
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="toolbar-actions">
-            <select
-              className="position-filter"
-              value={filterPosition}
-              onChange={(e) => setFilterPosition(e.target.value)}
-            >
-              <option value="">Sve pozicije</option>
-              {uniquePositions.map((position) => (
-                <option key={position} value={position}>
-                  {position}
-                </option>
-              ))}
-            </select>
+            <div className="filter-info">
+              Pronađeno: <strong>{filteredEmployees.length}</strong> /{" "}
+              {employees.length} zaposlenih
+            </div>
 
-            <button className="reset-btn" onClick={handleResetFilters}>
-              Reset filtera
-            </button>
-          </div>
-        </div>
-
-          <div className="filter-info">
-            Pronađeno: <strong>{filteredEmployees.length}</strong> /{" "}
-            {employees.length} zaposlenih
-          </div>
-
-          <div className="table-container">
-            <EmployeeTable employees={filteredEmployees} />
+            <div className="table-container">
+              <EmployeeTable employees={filteredEmployees} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
   );
 }
 

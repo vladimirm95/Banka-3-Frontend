@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAccounts, getAccountTransactions } from "../services/AccountService";
 import { getCurrentClient } from "../services/ClientService";
 import { getCurrentUserEmail } from "../services/AuthService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./ClientDashboardPage.css";
 
 function fmt(amount, currency = "RSD") {
@@ -161,7 +162,6 @@ export default function ClientDashboardPage() {
 
     return (
         <div className="dash-shell">
-
             {/* ── Scrollable content ── */}
             <div className="dash-content">
 
@@ -171,6 +171,7 @@ export default function ClientDashboardPage() {
                         <p className="dash-greeting">Dobro došli</p>
                         <p className="dash-name">{displayName}</p>
                     </div>
+                    <Sidebar/>
                     <button className="dash-bell" aria-label="Obaveštenja">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

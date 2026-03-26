@@ -1,4 +1,5 @@
 import { useState } from "react"
+import Sidebar from "../components/Sidebar.jsx";
 import "./LoanApplicationPage.css"
 
 export default function CreateLoanRequestPage(){
@@ -32,7 +33,6 @@ export default function CreateLoanRequestPage(){
 
   const handleSubmit = async (e)=>{
     e.preventDefault()
-
     setError("")
     setSuccess("")
 
@@ -48,17 +48,11 @@ export default function CreateLoanRequestPage(){
 
     try{
       setLoading(true)
-
-      await mockLoanRequest({
-        amount:Number(amount),
-        period:Number(period)
-      })
-
+      await mockLoanRequest({ amount:Number(amount), period:Number(period) })
       setSuccess("Zahtev za kredit je uspešno podnet.")
       setAmount("")
       setPeriod("")
       setMonthlyRate(null)
-
     }catch(err){
       setError(err.message)
     }finally{
@@ -77,54 +71,47 @@ export default function CreateLoanRequestPage(){
   }
 
   return(
-    <div className="loan-page">
+      <div className="loan-app-page">
+            <Sidebar />
 
-      <h1 className="loan-title">
-        Podnošenje zahteva za kredit
-      </h1>
+        <h1 className="loan-app-title">
+          Podnošenje zahteva za kredit
+        </h1>
 
-      <div className="loan-grid">
-
-        <div className="loan-card">
-
-          <form className="loan-form" onSubmit={handleSubmit}>
+        <div className="loan-app-card">
+          <form className="loan-app-form" onSubmit={handleSubmit}>
 
             <input
-              type="number"
-              placeholder="Iznos kredita"
-              value={amount}
-              onChange={(e)=>handleAmountChange(e.target.value)}
+                type="number"
+                placeholder="Iznos kredita"
+                value={amount}
+                onChange={(e)=>handleAmountChange(e.target.value)}
             />
 
             <input
-              type="number"
-              placeholder="Period otplate (meseci)"
-              value={period}
-              onChange={(e)=>handlePeriodChange(e.target.value)}
+                type="number"
+                placeholder="Period otplate (meseci)"
+                value={period}
+                onChange={(e)=>handlePeriodChange(e.target.value)}
             />
 
-            {monthlyRate &&
-              <div className="loan-rate">
-                Procena mesečne rate: <strong>{monthlyRate} €</strong>
-              </div>
-            }
+            {monthlyRate && (
+                <div className="loan-app-rate">
+                  Procena mesečne rate: <strong>{monthlyRate} €</strong>
+                </div>
+            )}
 
-            <button
-              className="loan-submit"
-              disabled={loading}
-            >
+            <button className="loan-app-submit" disabled={loading}>
               {loading ? "Slanje..." : "Podnesi zahtev"}
             </button>
 
           </form>
 
-          {error && <div className="loan-error">{error}</div>}
-          {success && <div className="loan-success">{success}</div>}
+          {error && <div className="loan-app-error">{error}</div>}
+          {success && <div className="loan-app-success">{success}</div>}
 
         </div>
 
       </div>
-
-    </div>
   )
 }

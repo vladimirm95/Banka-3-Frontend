@@ -1,7 +1,6 @@
 .aad-shell {
     min-height: 100vh;
-    background-color: #0A0E17;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     color: #f1f5f9;
 }
 
@@ -34,6 +33,7 @@
 }
 
 .aad-back-btn {
+    padding: 0;
     width: 40px;
     height: 40px;
     border-radius: 12px;

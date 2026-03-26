@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./CreateBusinessAccountPage.css";
+import Sidebar from "../components/Sidebar.jsx";
 import BusinessService from "../services/BusinessService";
 
 const CreateBusinessAccountPage = () => {
@@ -65,6 +66,7 @@ const CreateBusinessAccountPage = () => {
 
   return (
     <div className="business-container">
+      <Sidebar/>
       <div className="header">
         <div className="header-left">
           <h1>Poslovni račun</h1>

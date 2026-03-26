@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getExchangeRates, performExchange } from "../services/ExchangeService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./ExchangePage.css";
 
 function fmt(amount, currency = "RSD") {
@@ -110,6 +111,7 @@ export default function ExchangePage() {
     return (
         <div className="ex-page">
             <div className="ex-content">
+                <Sidebar/>
 
                 {/* ── HEADER ── */}
                 <div className="ex-header">

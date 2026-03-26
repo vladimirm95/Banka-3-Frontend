@@ -1,12 +1,8 @@
-/* STARO: light bg image + beli overlay */
-/* NOVO: dark premium background */
 .page-bg {
   position: relative;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top center, rgba(37, 99, 235, 0.12), transparent 24%),
-    linear-gradient(180deg, #030b1a 0%, #020817 100%);
   padding: 110px 24px 40px;
+  font-family: 'Inter', sans-serif;
 }
 
 .page-bg::before {
@@ -18,12 +14,23 @@
   z-index: 1;
 }
 
-.bank-logo {
+/* ── Logo ── */
+.bank-logo-icon {
   position: absolute;
   top: 24px;
   left: 32px;
+  width: 44px;
   height: 44px;
-  opacity: 0.95;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #4f8dfd 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
 .menu-icon {
@@ -79,6 +86,7 @@
   font-size: 34px;
   line-height: 1.1;
   color: #f8fafc;
+  font-family: 'Inter', sans-serif;
 }
 
 .employee-eyebrow {
@@ -95,7 +103,6 @@
   font-size: 15px;
 }
 
-/* NOVO: toolbar ide u koloni, ne silimo sve u jednu liniju */
 .employee-toolbar {
   display: flex;
   flex-direction: column;
@@ -103,13 +110,11 @@
   margin-bottom: 18px;
 }
 
-/* prvi red toolbar-a = samo search */
 .toolbar-row {
   display: flex;
   width: 100%;
 }
 
-/* drugi red = select + reset */
 .toolbar-actions {
   display: flex;
   gap: 12px;
@@ -135,6 +140,7 @@
   background: rgba(8, 20, 44, 0.9);
   color: #f8fafc;
   font-size: 15px;
+  font-family: 'Inter', sans-serif;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
@@ -155,7 +161,8 @@
   top: 50%;
   transform: translateY(-50%);
   color: #64748b;
-  font-size: 17px;
+  display: flex;
+  align-items: center;
   pointer-events: none;
 }
 
@@ -168,6 +175,7 @@
   background: rgba(8, 20, 44, 0.9);
   color: #f8fafc;
   font-size: 15px;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
@@ -189,6 +197,7 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
+  font-family: 'Inter', sans-serif;
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -203,11 +212,12 @@
   padding: 0 28px;
   border-radius: 18px;
   border: none;
-  background: linear-gradient(180deg, #4f8dfd 0%, #3b82f6 100%);
+  background: linear-gradient(145deg, #4f8dfd 0%, #3b82f6 100%);
   color: #ffffff;
   cursor: pointer;
   font-size: 15px;
   font-weight: 700;
+  font-family: 'Inter', sans-serif;
   box-shadow: 0 12px 28px rgba(59, 130, 246, 0.28);
   transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
@@ -241,6 +251,7 @@
   margin-bottom: 18px;
   font-size: 14px;
   color: #cbd5e1;
+  font-family: 'Inter', sans-serif;
 }
 
 .filter-info strong {
@@ -270,12 +281,6 @@
 @media (max-width: 768px) {
   .page-bg {
     padding: 90px 16px 24px;
-  }
-
-  .bank-logo {
-    left: 16px;
-    top: 20px;
-    height: 34px;
   }
 
   .menu-icon {

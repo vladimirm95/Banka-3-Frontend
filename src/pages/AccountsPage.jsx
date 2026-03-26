@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAccounts } from "../services/AccountsService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./AccountsPage.css";
 
 function fmt(amount, currency = "RSD") {
@@ -67,6 +68,7 @@ export default function AccountsPage() {
   return (
     <div className="accs-shell">
       <div className="accs-content">
+        <Sidebar/>
 
         <div className="accs-header">
           <div className="accs-title-block">

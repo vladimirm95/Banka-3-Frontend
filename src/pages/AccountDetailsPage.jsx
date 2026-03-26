@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAccountById, getAccountTransactions } from "../services/AccountService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./AccountDetailsPage.css";
 
 function fmt(amount, currency = "RSD") {
@@ -101,7 +102,7 @@ export default function AccountDetailsPage() {
     return (
         <div className="ad-page">
             <div className="ad-content">
-
+                <Sidebar/>
                 {/* ── HEADER ── */}
                 <div className="ad-header">
                     <button className="ad-back-btn" onClick={() => navigate("/accounts")}>
@@ -112,6 +113,8 @@ export default function AccountDetailsPage() {
 
                 {/* ── BALANCE CARD ── */}
                 <div className="ad-balance-card">
+                    <div className="dash-bc-circle1"/>
+                    <div className="dash-bc-circle2"/>
                     <p className="ad-account-number">{account.number}</p>
                     <p className="ad-balance-main">{fmt(account.balance, account.currency)}</p>
                     <div className="ad-balance-row">

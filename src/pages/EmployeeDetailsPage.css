@@ -9,6 +9,7 @@
 .profile-page {
   display: flex;
   justify-content: center;
+  font-family: 'Inter', sans-serif;
   padding: 40px 24px 60px;
 }
 
@@ -324,6 +325,7 @@
   }
 
   .profile-header-actions .profile-btn {
+    font-family: 'Inter', sans-serif;
     width: 100%;
   }
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createAccount } from "../services/AccountService";
 import { getCurrentUserId } from "../services/AuthService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./CreateAccountPage.css";
 
 const ACCOUNT_TYPES = [
@@ -84,13 +85,20 @@ const PERSONAL_SUBTYPES = [
     { value: "za_mlade", label: "Za mlade" },
 ];
 
-function validate(type, currency, ownerType, subtype) {
+const COMPANY_SUBTYPES = [
+    { value: "DOO", label: "D.O.O.", desc: "Društvo sa ograničenom odgovornošću" },
+    { value: "AD", label: "A.D.", desc: "Akcionarsko društvo" },
+];
+
+function validate(type, currency, ownerType, subtype, companySubtype) {
     const errors = {};
 
     if (!type) errors.type = "Izaberite tip računa.";
     if (type === "DEVIZNI" && !currency) errors.currency = "Izaberite valutu.";
     if (!ownerType) errors.ownerType = "Izaberite tip vlasnika.";
     if (ownerType === "PERSONAL" && !subtype) errors.subtype = "Izaberite podtip računa.";
+    if (ownerType === "BUSINESS" && !companySubtype)
+        errors.companySubtype = "Izaberite tip kompanije.";
 
     return errors;
 }
@@ -109,6 +117,8 @@ export default function CreateAccountPage() {
     const [dailyLimit, setDailyLimit] = useState("");
     const [monthlyLimit, setMonthlyLimit] = useState("");
     const [createCard, setCreateCard] = useState(false);
+    const [companySubtype, setCompanySubtype] = useState("");
+
 
     function handleTypeSelect(value) {
         setAccountType(value);
@@ -124,6 +134,7 @@ export default function CreateAccountPage() {
     function handleOwnerTypeSelect(value) {
         setOwnerType(value);
         setSubtype("");
+        setCompanySubtype("");
         if (value === "PERSONAL") setCompany(EMPTY_COMPANY);
         setErrors((prev) => ({ ...prev, ownerType: "", subtype: "", companyName: "", pib: "", registration_number: "", activity_code: "", companyAddress: "" }));
     }
@@ -139,7 +150,7 @@ export default function CreateAccountPage() {
         e.preventDefault();
         setSubmitError("");
 
-        const errs = validate(accountType, currency, ownerType, subtype);
+        const errs = validate(accountType, currency, ownerType, subtype, companySubtype);
         if (Object.keys(errs).length > 0) {
             setErrors(errs);
             return;
@@ -154,7 +165,7 @@ export default function CreateAccountPage() {
             await createAccount({
                 client_id: Number(userId),
                 account_type: accountType,
-                subtype: ownerType === "BUSINESS" ? "DOO" : subtype,
+                subtype: ownerType === "BUSINESS" ? companySubtype : subtype,
                 currency,
                 initial_balance: 0,
                 daily_limit: dailyLimit ? Number(dailyLimit) : 0,
@@ -181,6 +192,7 @@ export default function CreateAccountPage() {
 
     return (
         <div className="ca-shell">
+            <Sidebar/>
             <div className="ca-content">
 
                 {/* Header */}
@@ -317,6 +329,27 @@ export default function CreateAccountPage() {
                             <div className="ca-company-form">
 
                                 <div className="ca-field">
+                                    <label className="ca-field-label">Tip kompanije</label>
+                                    <div className="ca-currency-grid">
+                                        {COMPANY_SUBTYPES.map(({value, label, desc}) => (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                className={`ca-currency-btn ${companySubtype === value ? "ca-currency-btn--selected" : ""}`}
+                                                onClick={() => {
+                                                    setCompanySubtype(value);
+                                                    setErrors((prev) => ({...prev, companySubtype: ""}));
+                                                }}
+                                            >
+                                                <span className="ca-currency-code">{label}</span>
+                                                <span className="ca-currency-name">{desc}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {errors.companySubtype && <p className="ca-error">{errors.companySubtype}</p>}
+                                </div>
+
+                                <div className="ca-field">
                                     <label className="ca-field-label">Naziv kompanije</label>
                                     <input
                                         className={`ca-input ${errors.companyName ? "ca-input--error" : ""}`}
@@ -352,7 +385,8 @@ export default function CreateAccountPage() {
                                             placeholder="8 cifara"
                                             maxLength={8}
                                         />
-                                        {errors.registration_number && <p className="ca-error">{errors.registration_number}</p>}
+                                        {errors.registration_number &&
+                                            <p className="ca-error">{errors.registration_number}</p>}
                                     </div>
                                 </div>
 
@@ -389,7 +423,7 @@ export default function CreateAccountPage() {
                         <div className="ca-section">
                             <p className="ca-section-label">Podešavanja računa</p>
 
-                            <div className="ca-field-row" style={{ marginBottom: 12 }}>
+                            <div className="ca-field-row" style={{marginBottom: 12}}>
                                 <div className="ca-field">
                                     <label className="ca-field-label">Dnevni limit (RSD)</label>
                                     <input
@@ -451,6 +485,12 @@ export default function CreateAccountPage() {
                                 <div className="ca-summary-row">
                                     <span>Podtip</span>
                                     <span>{PERSONAL_SUBTYPES.find(s => s.value === subtype)?.label}</span>
+                                </div>
+                            )}
+                            {ownerType === "BUSINESS" && companySubtype && (
+                                <div className="ca-summary-row">
+                                    <span>Tip kompanije</span>
+                                    <span>{companySubtype}</span>
                                 </div>
                             )}
                             <div className="ca-summary-row">

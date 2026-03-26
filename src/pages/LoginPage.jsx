@@ -69,61 +69,58 @@ export default function LoginPage() {
   };
 
   const handleForgotPassword = () => {
-      navigate("/forgot-password");
+    navigate("/forgot-password");
   };
 
   return (
-    <div className="login-page">
-      <div className="login-shell">
-        <div className="login-brand">
-          <div className="login-brand-icon">B</div>
-          <h1>Banka</h1>
-          <p>Prijavite se na vaš nalog</p>
+      <div className="login-page">
+        <div className="login-shell">
+          <div className="login-brand">
+            <div className="login-brand-icon">B</div>
+            <h1>Banka</h1>
+            <p>Prijavite se na vaš nalog</p>
+          </div>
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="form-field">
+              <label htmlFor="email">EMAIL</label>
+              <div className="input-wrapper">
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="unesite adresu..."
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="password">LOZINKA</label>
+              <div className="input-wrapper">
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="unesite lozinku..."
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <p className="forgot-password" onClick={handleForgotPassword}>
+              Zaboravili ste lozinku?
+            </p>
+
+            <button type="submit" className="login-button" disabled={loading}>
+              {loading ? "Prijavljivanje..." : "Prijavi se"}
+            </button>
+
+            {message && <p className="message">{message}</p>}
+          </form>
+
+          <p className="login-footer">Banka 2026 • Računarski fakultet</p>
         </div>
-
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label htmlFor="email">EMAIL</label>
-            <div className="input-wrapper">
-              <span className="input-icon">✉</span>
-              <input
-                id="email"
-                type="email"
-                placeholder="unesite adresu..."
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="password">LOZINKA</label>
-            <div className="input-wrapper">
-              <span className="input-icon">🔒</span>
-              <input
-                id="password"
-                type="password"
-                placeholder="unesite lozinku..."
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <span className="input-icon right">👁</span>
-            </div>
-          </div>
-
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? "Prijavljivanje..." : "Prijavi se"}
-          </button>
-
-          <p className="forgot-password" onClick={handleForgotPassword}>
-            Zaboravili ste lozinku?
-          </p>
-
-          {message && <p className="message">{message}</p>}
-        </form>
-
-        <p className="login-footer">Banka 2026 • Računarski fakultet</p>
       </div>
-    </div>
   );
 }

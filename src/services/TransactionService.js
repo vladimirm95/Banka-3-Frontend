@@ -11,7 +11,9 @@ import api from "./api.js";
  * @param {string} data.reference_number
  * @param {string} data.purpose
  */
-export async function transferFunds(data) {
-    const response = await api.post("/transactions/payment", data);
+export async function transferFunds(data, totpCode) {
+    const response = await api.post("/transactions/payment", data, {
+        headers: { "TOTP": totpCode }
+    });
     return response.data;
 }

@@ -1,10 +1,9 @@
 .ad-page {
     position: fixed;
     inset: 0;
-    background-color: #0A0E17;
     overflow-y: auto;
     z-index: 20;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 .ad-content {
@@ -35,6 +34,7 @@
     width: 36px;
     height: 36px;
     border-radius: 12px;
+    padding: 0;
     background: #111827;
     border: 1px solid #1e293b;
     display: flex;
@@ -58,15 +58,40 @@
 }
 
 .ad-balance-card {
-    background: #111827;
-    border: 1px solid #1e293b;
+    position: relative;
+    background: #3b82f6;
     border-radius: 20px;
-    padding: 22px;
-    margin-bottom: 24px;
+    padding: 28px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dash-bc-circle1 {
+    position: absolute;
+    top: -36px;
+    right: -36px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+    pointer-events: none;
+}
+
+.dash-bc-circle2 {
+    position: absolute;
+    bottom: -24px;
+    left: -24px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    pointer-events: none;
 }
 
 .ad-account-number {
-    color: #475569;
+    color: rgba(255, 255, 255, 0.6);
     font-size: 0.75rem;
     font-family: monospace;
 }
@@ -87,13 +112,13 @@
 }
 
 .ad-balance-label {
-    color: #475569;
+    color: rgba(255, 255, 255, 0.6);
     font-size: 0.6875rem;
     margin-bottom: 2px;
 }
 
 .ad-balance-available {
-    color: #06d6a0;
+    color: #34d399;
     font-size: 0.875rem;
     font-weight: 600;
 }
@@ -152,13 +177,13 @@
 }
 
 .ad-txn-icon--credit {
-    background: rgba(6, 214, 160, 0.15);
-    color: #06d6a0;
+    background: rgba(52, 211, 153, 0.12);
+    color: #34d399;
 }
 
 .ad-txn-icon--debit {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background: rgba(248, 113, 113, 0.10);  /* was rgba(239,68,68,0.12) */
+    color: #f87171;
 }
 
 .ad-txn-info {
@@ -190,5 +215,5 @@
 }
 
 .ad-txn-amount--credit {
-    color: #06d6a0;
+    color: #34d399;
 }

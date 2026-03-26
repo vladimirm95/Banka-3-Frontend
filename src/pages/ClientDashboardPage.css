@@ -1,9 +1,8 @@
 .dash-shell {
     min-height: 100vh;
-    background-color: #0A0E17;
     display: flex;
     flex-direction: column;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     color: #e6edf3;
     overflow-x: hidden;
 }
@@ -18,8 +17,11 @@
 .dash-state-msg--error { color: #ef4444; }
 
 .dash-bell {
-    width: 40px;
-    height: 40px;
+    position: fixed;       /* fiksno na ekranu, kao burger */
+    top: 25px;             /* isti top kao burger */
+    right: 90px;           /* udaljeno od desnog ruba da ne preklapa burger */
+    width: 46px;
+    height: 46px;
     border-radius: 12px;
     background: #111827;
     border: 1px solid #1e293b;
@@ -29,10 +31,11 @@
     justify-content: center;
     cursor: pointer;
     transition: border-color 0.2s, color 0.2s;
+    z-index: 2100;         /* iznad sadržaja */
 }
 
 .dash-bell:hover {
-    border-color: #3b6ef5;
+    border-color: #3b82f6;
     color: #e6edf3;
 }
 
@@ -70,7 +73,7 @@
 /* ── Balance card ── */
 .dash-balance-card {
     position: relative;
-    background: #3b6ef5;
+    background: #3b82f6;
     border-radius: 20px;
     padding: 28px;
     margin-bottom: 14px;
@@ -135,7 +138,7 @@
     border-radius: 12px;
     padding: 10px 8px;
     color: rgba(255, 255, 255, 0.92);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
     display: flex;
@@ -165,8 +168,8 @@
 .dash-section-link {
     background: none;
     border: none;
-    color: #3b6ef5;
-    font-family: 'DM Sans', sans-serif;
+    color: #3b82f6;
+    font-family: 'Inter', sans-serif;
     font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;
@@ -203,7 +206,7 @@
 }
 
 .dash-account-pill:hover {
-    border-color: #3b6ef5;
+    border-color: #3b82f6;
     background: #1c2230;
 }
 
@@ -249,7 +252,7 @@
 }
 
 .dash-menu-item:hover {
-    border-color: #3b6ef5;
+    border-color: #3b82f6;
     background: #1c2230;
 }
 
@@ -257,8 +260,8 @@
     width: 44px;
     height: 44px;
     border-radius: 13px;
-    background: rgba(59, 110, 245, 0.15);
-    color: #3b6ef5;
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
     display: flex;
     align-items: center;
     justify-content: center;

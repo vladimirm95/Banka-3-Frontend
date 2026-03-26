@@ -1,10 +1,9 @@
 .ex-page {
     position: fixed;
     inset: 0;
-    background-color: #0A0E17;
     overflow-y: auto;
     z-index: 20;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 .ex-content {
@@ -35,6 +34,7 @@
     width: 36px;
     height: 36px;
     border-radius: 12px;
+    padding: 0;
     background: #111827;
     border: 1px solid #1e293b;
     display: flex;
@@ -81,13 +81,13 @@
 .ex-select,
 .ex-input {
     width: 100%;
-    background: #0A0E17;
+    background: rgba(7, 14, 28, 0.80);
     border: 1px solid #1e293b;
     border-radius: 12px;
     padding: 12px 14px;
     color: #f1f5f9;
     font-size: 0.95rem;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     outline: none;
     transition: border-color 0.2s;
     box-sizing: border-box;
@@ -95,7 +95,8 @@
 
 .ex-select:focus,
 .ex-input:focus {
-    border-color: #3b6ef5;
+    border-color: rgba(59, 130, 246, 0.55);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10);
 }
 
 .ex-select option {
@@ -127,12 +128,11 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #1a2234;
     border: 1px solid #1e293b;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #3b6ef5;
+    background: #3b82f6;
     cursor: pointer;
     transition: background 0.2s, transform 0.2s;
 }
@@ -144,7 +144,7 @@
 
 .ex-result-display {
     width: 100%;
-    background: #0A0E17;
+    background: rgba(7, 14, 28, 0.80);
     border: 1px solid #1e293b;
     border-radius: 12px;
     padding: 12px 14px;
@@ -156,7 +156,7 @@
 
 .ex-rate-info {
     text-align: center;
-    color: #3b6ef5;
+    color: #3b82f6;
     font-size: 0.8rem;
     font-weight: 500;
     margin: 12px 0 20px;
@@ -167,17 +167,17 @@
     padding: 14px;
     border: none;
     border-radius: 14px;
-    background: #3b6ef5;
+    background: #3b82f6;
     color: #fff;
     font-size: 1rem;
     font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .ex-submit-btn:hover:not(:disabled) {
-    background: #2d5bd6;
+    background: #2563eb;
 }
 
 .ex-submit-btn:disabled {
@@ -194,11 +194,11 @@
 }
 
 .ex-msg--error {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.08);
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.08);
 }
 
 .ex-msg--success {
-    color: #06d6a0;
-    background: rgba(6, 214, 160, 0.08);
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.08);
 }

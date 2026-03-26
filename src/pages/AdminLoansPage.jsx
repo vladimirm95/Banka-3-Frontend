@@ -1,4 +1,5 @@
 import { useState } from "react"
+import Sidebar from "../components/Sidebar.jsx";
 import "./AdminLoansPage.css"
 
 export default function AdminLoansPage(){
@@ -31,6 +32,7 @@ export default function AdminLoansPage(){
 
   return(
     <div className="loan-page">
+      <Sidebar/>
 
       <h1 className="loan-title">
         Administracija kreditnih zahteva

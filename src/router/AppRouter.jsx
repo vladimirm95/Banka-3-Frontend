@@ -5,6 +5,8 @@ import AccountsPage from "../pages/AccountsPage.jsx";
 import AdminAccountDetailsPage from "../pages/AdminAccountDetailsPage.jsx";
 import LoanOverview from "../pages/LoanOverview.jsx";
 import EmployeesPage from "../pages/EmployeesPage.jsx";
+import ClientsPage from "../pages/ClientsPage.jsx";
+import ClientDetailsPage from "../pages/ClientDetailsPage.jsx";
 import EmployeeDetailsPage from "../pages/EmployeeDetailsPage.jsx";
 import CreateEmployeePage from "../pages/CreateEmployeePage.jsx";
 import EditEmployeePage from "../pages/EditEmployeePage.jsx";
@@ -16,7 +18,6 @@ import ProtectedRoute from "./ProtectedRoute.jsx";
 import AdminLoansPage from "../pages/AdminLoansPage.jsx";
 import LoanApplicationPage from "../pages/LoanApplicationPage.jsx"
 import BusinessDetailsPage from "../pages/BusinessDetailsPage.jsx";
-import CreateBusinessAccountPage from "../pages/CreateBusinessAccountPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage.jsx";
 import EnterTokenPage from "../pages/EnterTokenPage.jsx";
 import AccountDetailsPage from "../pages/AccountDetailsPage.jsx";
@@ -49,12 +50,18 @@ export default function AppRouter() {
         <Route path="/accounts/create" element={<ProtectedRoute requiredRole="client"><CreateAccountPage /></ProtectedRoute>} />
         <Route path="/admin/accounts/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
         <Route path="/employees" element={<ProtectedRoute requiredRole="employee"><EmployeesPage /></ProtectedRoute>} />
+
+        {/*Stranica postoji, ALI putanja ne radi za sada posto se userRole u localStorage postavlja na 'client'
+          Da bi proradilo treba setovati userRole na 'employee'*/}
+        <Route path="/clients" element={<ProtectedRoute requiredRole="employee"><ClientsPage /></ProtectedRoute>} />
+        <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
+
         <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee"><CreateEmployeePage /></ProtectedRoute>} />
         <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />
         <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee"><EmployeeDetailsPage /></ProtectedRoute>} />
         <Route path="/recipients" element={<ProtectedRoute requiredRole="client"><RecipientsPage /></ProtectedRoute>} />
         <Route path="/payments" element={<ProtectedRoute requiredRole="client"><PaymentsPage /></ProtectedRoute>} />
-        <Route path="/accounts/business/:id" element={<ProtectedRoute><BusinessDetailsPage /></ProtectedRoute>}/>
+        <Route path="/accounts/business/:id" element={<ProtectedRoute><BusinessDetailsPage /></ProtectedRoute>} />
         <Route path="/cards" element={<ProtectedRoute requiredRole="client"><CardsPage /></ProtectedRoute>} />
         <Route path="/payment" element={<ProtectedRoute requiredRole="client"><PaymentPage /></ProtectedRoute>} />
 

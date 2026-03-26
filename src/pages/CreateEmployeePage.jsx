@@ -4,7 +4,7 @@ import { PERMISSIONS } from "../constants/permissions";
 import "./CreateEmployeePage.css";
 import "../pages/EmployeesPage.css";
 import { useNavigate } from "react-router-dom";
-import MenuDropdown from "../components/MenuDropdown";
+import Sidebar from "../components/Sidebar.jsx";
 
 function validate(form) {
   const errors = {};
@@ -183,8 +183,7 @@ export default function CreateEmployeePage() {
       čist layout bez debug background-a i bez inline stilova
     */
     <div className="page-bg">
-      <img src="/bank-logo.png" alt="logo" className="bank-logo" />
-      <MenuDropdown />
+      <Sidebar />
 
       <div className="create-page">
         <div className="create-form-card">
