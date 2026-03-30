@@ -39,9 +39,11 @@ api.interceptors.response.use(
         const { data } = await api.post("/token/refresh", {
           refresh_token: storedRefresh,
         });
-        localStorage.setItem("accessToken", data.access_token);
-        localStorage.setItem("refreshToken", data.refresh_token);
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+        const newAccess = data.access_token || data.accessToken;
+        const newRefresh = data.refresh_token || data.refreshToken;
+        localStorage.setItem("accessToken", newAccess);
+        localStorage.setItem("refreshToken", newRefresh);
+        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch {
         localStorage.removeItem("accessToken");

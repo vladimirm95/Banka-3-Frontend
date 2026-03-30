@@ -24,8 +24,11 @@ import AccountDetailsPage from "../pages/AccountDetailsPage.jsx";
 import CreateAccountPage from "../pages/CreateAccountPage.jsx";
 import ClientDashboardPage from "../pages/ClientDashboardPage.jsx";
 import ExchangePage from "../pages/ExchangePage.jsx";
+import BerzaPage from "../pages/BerzaPage.jsx";
 import PaymentPage from "../pages/PaymentPage.jsx";
 import PortfolioOverviewPage from "../pages/PortfolioOverviewPage.jsx";
+import TotpSetupPage from "../pages/TotpSetupPage.jsx";
+import TransferPage from "../pages/TransferPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -56,17 +59,20 @@ export default function AppRouter() {
         <Route path="/clients" element={<ProtectedRoute requiredRole="employee"><ClientsPage /></ProtectedRoute>} />
         <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
 
-        <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee"><CreateEmployeePage /></ProtectedRoute>} />
-        <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />
-        <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee"><EmployeeDetailsPage /></ProtectedRoute>} />
-        <Route path="/recipients" element={<ProtectedRoute requiredRole="client"><RecipientsPage /></ProtectedRoute>} />
-        <Route path="/payments" element={<ProtectedRoute requiredRole="client"><PaymentsPage /></ProtectedRoute>} />
-        <Route path="/accounts/business/:id" element={<ProtectedRoute><BusinessDetailsPage /></ProtectedRoute>} />
-        <Route path="/cards" element={<ProtectedRoute requiredRole="client"><CardsPage /></ProtectedRoute>} />
-        <Route path="/payment" element={<ProtectedRoute requiredRole="client"><PaymentPage /></ProtectedRoute>} />
+          <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee"><CreateEmployeePage /></ProtectedRoute>} />
+          <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />
+          <Route path="/employees/:id" element={<ProtectedRoute requiredRole="employee"><EmployeeDetailsPage /></ProtectedRoute>} />
+          <Route path="/recipients" element={<ProtectedRoute requiredRole="client"><RecipientsPage /></ProtectedRoute>} />
+          <Route path="/payments" element={<ProtectedRoute requiredRole="client"><PaymentsPage /></ProtectedRoute>} />
+          <Route path="/accounts/business/:id" element={<ProtectedRoute><BusinessDetailsPage /></ProtectedRoute>}/>
+          <Route path="/cards" element={<ProtectedRoute requiredRole="client"><CardsPage /></ProtectedRoute>} />
+          <Route path="/payment" element={<ProtectedRoute requiredRole="client"><PaymentPage /></ProtectedRoute>} />
+          <Route path="/verify" element={<ProtectedRoute requiredRole="client"><TotpSetupPage /></ProtectedRoute>} />
+          <Route path="/transfer" element={<ProtectedRoute requiredRole="client"><TransferPage /></ProtectedRoute>} />
 
-        <Route path="/accounts/:id" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
-        <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
+          <Route path="/accounts/:id" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
+          <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 
       </Routes>
     </BrowserRouter>

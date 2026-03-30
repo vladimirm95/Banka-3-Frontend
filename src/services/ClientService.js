@@ -1,59 +1,47 @@
+// src/services/ClientService.js
 import api from "./api.js";
 
+// Keširanje podataka o trenutnom klijentu
 let clientCache = null;
 let clientCacheEmail = null;
 
-function normalizeClient(raw) {
+// Funkcija za mapiranje polja sa Backenda na Frontend standard
+function normalizeClient(c) {
+  if (!c) return null;
   return {
-    id: raw.id,
-    firstName: raw.first_name,
-    lastName: raw.last_name,
-    email: raw.email,
-    phone: raw.phone_number || "",
-    address: raw.address || "",
-    dateOfBirth: raw.birth_date || raw.date_of_birth || null,
-    gender: raw.gender || "",
-    username: raw.username || "",
-    active: raw.active,
+    id: c.id,
+    firstName: c.first_name || c.FirstName,
+    lastName: c.last_name || c.LastName,
+    email: c.email || c.Email,
+    phone: c.phone_number || c.PhoneNumber,
+    address: c.address || c.Address,
+    gender: c.gender || c.Gender,
+    dateOfBirth: c.date_of_birth || c.DateOfBirth,
+    username: c.username || ""
   };
 }
 
-export async function getClients(params = {}) {
-  const response = await api.get("/clients", { params });
-  const clients = response.data.clients ?? response.data;
-  if (!Array.isArray(clients)) {
-    return clients?.id ? [normalizeClient(clients)] : [];
-  }
-  return clients.map(normalizeClient);
+export async function getClients() {
+  const response = await api.get("/clients");
+  const data = response.data.clients || response.data;
+  return Array.isArray(data) ? data.map(normalizeClient) : [];
 }
 
-export async function getClientById(clientId) {
-  try {
-    const response = await api.get(`/clients/${clientId}`);
-    const client = response.data.client ?? response.data;
-    if (client?.id) {
-      return normalizeClient(client);
-    }
-  } catch {
-
-  }
-
-  const clients = await getClients();
-  return clients.find((client) => String(client.id) === String(clientId)) ?? null;
+export async function getClientById(id) {
+  const response = await api.get(`/clients/${id}`);
+  return normalizeClient(response.data);
 }
 
 export async function getClientByEmail(email) {
   const response = await api.get("/clients", { params: { email } });
-  const clients = response.data.clients ?? response.data;
-  if (Array.isArray(clients) && clients.length > 0) {
-    return normalizeClient(clients[0]);
-  }
-  if (!Array.isArray(clients) && clients?.id) {
-    return normalizeClient(clients);
-  }
+  const data = response.data.clients || response.data;
+  if (Array.isArray(data) && data.length > 0) return normalizeClient(data[0]);
+  // Backend ponekad vrati direktno jedan objekat umesto niza
+  if (data && data.email === email) return normalizeClient(data);
   return null;
 }
 
+// Logika za keširanje koju koristi Dashboard da ne bi stalno zvao API
 export async function getCurrentClient(email) {
   if (clientCache && clientCacheEmail === email) {
     return clientCache;
@@ -66,6 +54,7 @@ export async function getCurrentClient(email) {
   return client;
 }
 
+// OVO JE FUNKCIJA KOJA JE NEDOSTAJALA:
 export function clearClientCache() {
   clientCache = null;
   clientCacheEmail = null;

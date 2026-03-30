@@ -11,22 +11,41 @@ export default function RecipientsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setRecipients(await getRecipients());
-      setLoading(false);
+  async function load() {
+    setLoading(true);
+    try {
+      const data = await getRecipients();
+      
+      // Proveravamo da li je data niz ili objekat koji sadrži 'content' niz
+      if (Array.isArray(data)) {
+        setRecipients(data);
+      } else if (data && Array.isArray(data.content)) {
+        // OVO JE NAJVEROVATNIJI SCENARIO za ovaj API
+        setRecipients(data.content);
+      } else {
+        setRecipients([]); // Fallback na prazan niz
+      }
+    } catch (error) {
+      console.error("Greška:", error);
+      setRecipients([]);
     }
-    load();
+    setLoading(false);
+  }
+  load();
   }, []);
 
   const filtered = useMemo(() => {
-    const lower = searchTerm.toLowerCase();
-    return recipients.filter(
-        (r) =>
-            r.name.toLowerCase().includes(lower) ||
-            r.account_number.toLowerCase().includes(lower)
-    );
-  }, [recipients, searchTerm]);
+  // Ako iz nekog razloga recipients nije niz, vrati prazan niz odmah
+  if (!Array.isArray(recipients)) return [];
+
+  const lower = searchTerm.toLowerCase();
+  return recipients.filter((r) => {
+    // Dodajemo i upitnik (optional chaining) da ne pukne ako r.name ne postoji
+    const nameMatch = r.name?.toLowerCase().includes(lower);
+    const accountMatch = r.account_number?.toLowerCase().includes(lower);
+    return nameMatch || accountMatch;
+  });
+}, [recipients, searchTerm]);
 
   return (
       <div className="rp-bg">

@@ -8,6 +8,7 @@ export default function MenuDropdown() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
   const navigate = useNavigate();
+  const role = localStorage.getItem("userRole");
 
   // Zatvaranje klikom van panela
   useEffect(() => {
@@ -45,56 +46,93 @@ export default function MenuDropdown() {
   };
 
   // Stavke menija
-  const menuSections = [
-    {
-      title: "Dashboard",
-      items: [
-        { label: "Client Dashboard", path: "/dashboard" },
-      ],
-    },
-    {
-      title: "Računi",
-      items: [
-        { label: "Tekući račun", path: "/accounts/1" },
-        { label: "Devizni račun", path: "/accounts/2" },
-        { label: "Štedni računa", path: "/accounts/3" },
-      ],
-    },
-    {
-      title: "Plaćanja",
-      items: [
-        { label: "Novo plaćanje", path: "/payment" },
-        { label: "Pregled primaoca", path: "/recipients" },
-      ],
-    },
-    {
-      title: "Kartice",
-      items: [
-        { label: "Lista kartica", path: "/cards" },
-      ],
-    },
-    {
-      title: "Krediti",
-      items: [
-        { label: "Podnošenje zahteva", path: "/loan-request" },
-        { label: "Upravljanje kreditima", path: "/loans" },
-      ],
-    },
-    {
-      title: "Menjačnica",
-      items: [
-        { label: "Menjacnica", path: "/exchange" },
-      ],
-    },
-    {
-      title: "Administracija / HR",
-      items: [
-        { label: "Lista klijenata", path: "/clients" },
-        { label: "Pregled računa", path: "/admin/accounts" },
-        { label: "Lista zaposlenih", path: "/employees" },
-      ],
-    },
-  ];
+  const getMenuSections = () => {
+    if (role === "client") {
+      return [
+        {
+          title: "Dashboard",
+          items: [{ label: "Client Dashboard", path: "/dashboard" }],
+        },
+        {
+          title: "Računi",
+          items: [
+            { label: "Moji računi", path: "/accounts" },
+          ],
+        },
+        {
+          title: "Plaćanja",
+          items: [
+            { label: "Novo plaćanje", path: "/payment" },
+            { label: "Novi transfer", path: "/payment" },
+            { label: "Pregled transakcija", path: "/payments" },
+            { label: "Primaoci", path: "/recipients" },
+          ],
+        },
+        {
+          title: "Menjačnica",
+          items: [
+            { label: "Kursna lista / konverzija", path: "/exchange" },
+          ],
+        },
+        {
+          title: "Kartice",
+          items: [
+            { label: "Moje kartice", path: "/cards" },
+            { label: "Zahtev za novu karticu", path: "/cards/request" },
+          ],
+        },
+        {
+          title: "Krediti",
+          items: [
+            { label: "Moji krediti", path: "/loans" },
+            { label: "Zahtev za kredit", path: "/loan-request" },
+          ],
+        },
+      ];
+    }
+
+    if (role === "employee") {
+      return [
+        {
+          title: "Računi",
+          items: [
+            { label: "Svi računi", path: "/accounts" },
+            { label: "Kreiraj račun", path: "/accounts/create" },
+          ],
+        },
+        {
+          title: "Kartice",
+          items: [
+            { label: "Upravljanje karticama", path: "/cards" },
+          ],
+        },
+        {
+          title: "Krediti",
+          items: [
+            { label: "Zahtevi za kredit", path: "/loan-request" },
+            { label: "Svi krediti", path: "/loans" },
+          ],
+        },
+      ];
+    }
+
+    if (role === "administrator") {
+      return [
+        {
+          title: "Zaposleni",
+          items: [
+            { label: "Lista zaposlenih", path: "/employees" },
+            { label: "Dodaj zaposlenog", path: "/employees/create" },
+          ],
+        },
+      ];
+    }
+
+    return [];
+  };
+
+  const menuSections = getMenuSections();
+
 
   return createPortal(
       <>
