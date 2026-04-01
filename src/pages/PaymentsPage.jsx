@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getTransactions } from "../services/PaymentService";
-import MenuDropdown from "../components/MenuDropdown";
+import Sidebar from "../components/Sidebar.jsx";
 import "./PaymentsPage.css";
 
-// ─── Helpers ────────────────────────────────────────────────
 function fmt(amount, currency = "RSD") {
-  return `${Math.abs(amount).toLocaleString("sr-RS")} ${currency}`;
+    return `${Math.abs(amount).toLocaleString("sr-RS")} ${currency}`;
 }
 
 function formatDate(timestamp) {
-  const d = new Date(timestamp);
-  return d.toLocaleString("sr-RS", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    const d = new Date(timestamp);
+    return d.toLocaleString("sr-RS", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+    });
 }
 function escapeHtml(value) {
     return String(value ?? "")
@@ -248,16 +244,22 @@ function handlePrintPaymentReceipt(tx, statusLabel) {
 
 
 const STATUS_CFG = {
-  Realizovano:  { color: "#06d6a0", bg: "rgba(6,214,160,0.15)",  label: "Izvršeno",  icon: "✓" },
-  "Na čekanju": { color: "#3b82f6", bg: "rgba(59,130,246,0.15)", label: "U obradi",  icon: "◷" },
-  Odbijeno:     { color: "#ef4444", bg: "rgba(239,68,68,0.12)",  label: "Odbijeno",  icon: "✕" },
+    Realizovano:  { color: "#34d399", bg: "rgba(52,211,153,0.12)",  label: "Izvršeno", icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        )},
+    "Na čekanju": { color: "#60a5fa", bg: "rgba(96,165,250,0.12)", label: "U obradi", icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        )},
+    Odbijeno:     { color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Odbijeno", icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        )},
 };
 
 const FILTERS = [
-  { key: "all",         label: "Sve",      match: null },
-  { key: "Realizovano", label: "Izvršeno", match: "Realizovano" },
-  { key: "Na čekanju",  label: "U obradi", match: "Na čekanju" },
-  { key: "Odbijeno",    label: "Odbijeno", match: "Odbijeno" },
+    { key: "all",         label: "Sve",      match: null },
+    { key: "Realizovano", label: "Izvršeno", match: "Realizovano" },
+    { key: "Na čekanju",  label: "U obradi", match: "Na čekanju" },
+    { key: "Odbijeno",    label: "Odbijeno", match: "Odbijeno" },
 ];
 
 
@@ -267,6 +269,7 @@ function PaymentDetail({ tx, onBack }) {
 
   return (
     <div className="pp-content">
+        <Sidebar/>
       <div className="pp-top-row">
         <button className="pp-back-btn" onClick={onBack}>‹</button>
         <span className="pp-section-title">Detalji plaćanja</span>
@@ -313,91 +316,86 @@ function PaymentDetail({ tx, onBack }) {
   );
 }
 
-// ─── Payment list ────────────────────────────────────────────
 function PaymentList({ transactions, onSelect }) {
-  const [filter, setFilter] = useState("all");
+    const [filter, setFilter] = useState("all");
 
-  const filtered = filter === "all"
-    ? transactions
-    : transactions.filter((t) => t.status === filter);
+    const filtered = filter === "all"
+        ? transactions
+        : transactions.filter((t) => t.status === filter);
 
-  const total    = filtered.reduce((s, t) => s + t.final_amount, 0);
-  const currency = filtered[0]?.currency ?? "RSD";
+    const total    = filtered.reduce((s, t) => s + t.final_amount, 0);
+    const currency = filtered[0]?.currency ?? "RSD";
 
-  return (
-    <div className="pp-content">
-      {/* Filter pills */}
-      <div className="pp-filters">
-        {FILTERS.map((f) => {
-          const count  = f.match ? transactions.filter((t) => t.status === f.match).length : transactions.length;
-          const active = filter === f.key;
-          return (
-            <button
-              key={f.key}
-              className={`pp-filter-pill${active ? " pp-filter-pill--active" : ""}`}
-              onClick={() => setFilter(f.key)}
-            >
-              {f.label}
-              {f.match && (
-                <span className={`pp-pill-count${active ? " pp-pill-count--active" : ""}`}>
+    return (
+        <div className="pp-content">
+            <div className="pp-filters">
+                {FILTERS.map((f) => {
+                    const count  = f.match ? transactions.filter((t) => t.status === f.match).length : transactions.length;
+                    const active = filter === f.key;
+                    return (
+                        <button
+                            key={f.key}
+                            className={`pp-filter-pill${active ? " pp-filter-pill--active" : ""}`}
+                            onClick={() => setFilter(f.key)}
+                        >
+                            {f.label}
+                            {f.match && (
+                                <span className={`pp-pill-count${active ? " pp-pill-count--active" : ""}`}>
                   {count}
                 </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
-        <div className="pp-empty">
-          <span className="pp-empty-icon">🧾</span>
-          <span>Nema plaćanja u ovoj kategoriji</span>
-        </div>
-      ) : (
-        <div className="pp-list">
-          {filtered.map((t, i) => {
-            const cfg = STATUS_CFG[t.status] ?? STATUS_CFG["Realizovano"];
-            return (
-              <button key={i} className="pp-row" onClick={() => onSelect(t)}>
+            {filtered.length === 0 ? (
+                <div className="pp-empty">
+                    <span className="pp-empty-icon">📋</span>
+                    <span>Nema plaćanja u ovoj kategoriji</span>
+                </div>
+            ) : (
+                <div className="pp-list">
+                    {filtered.map((t, i) => {
+                        const cfg = STATUS_CFG[t.status] ?? STATUS_CFG["Realizovano"];
+                        return (
+                            <button key={i} className="pp-row" onClick={() => onSelect(t)}>
                 <span className="pp-row-icon" style={{ background: cfg.bg, color: cfg.color }}>
                   {cfg.icon}
                 </span>
-                <div className="pp-row-mid">
-                  <span className="pp-row-account">{t.to_account}</span>
-                  <span className="pp-row-purpose">{t.purpose}</span>
-                  <span className="pp-row-date">{formatDate(t.timestamp)}</span>
-                </div>
-                <div className="pp-row-right">
-                  <span className="pp-row-amount">{fmt(t.final_amount, t.currency)}</span>
-                  <span className="pp-row-badge" style={{ background: cfg.bg, color: cfg.color }}>
+                                <div className="pp-row-mid">
+                                    <span className="pp-row-account">{t.to_account}</span>
+                                    <span className="pp-row-purpose">{t.purpose}</span>
+                                    <span className="pp-row-date">{formatDate(t.timestamp)}</span>
+                                </div>
+                                <div className="pp-row-right">
+                                    <span className="pp-row-amount">{fmt(t.final_amount, t.currency)}</span>
+                                    <span className="pp-row-badge" style={{ background: cfg.bg, color: cfg.color }}>
                     {cfg.label}
                   </span>
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+            )}
 
-      {/* Summary */}
-      {filtered.length > 0 && (
-        <div className="pp-summary">
-          <div className="pp-summary-row">
-            <span className="pp-summary-label">Ukupno plaćanja</span>
-            <span className="pp-summary-value">{filtered.length}</span>
-          </div>
-          <div className="pp-summary-row pp-summary-row--border">
-            <span className="pp-summary-label">Ukupan iznos</span>
-            <span className="pp-summary-value">{fmt(total, currency)}</span>
-          </div>
+            {filtered.length > 0 && (
+                <div className="pp-summary">
+                    <div className="pp-summary-row">
+                        <span className="pp-summary-label">Ukupno plaćanja</span>
+                        <span className="pp-summary-value">{filtered.length}</span>
+                    </div>
+                    <div className="pp-summary-row pp-summary-row--border">
+                        <span className="pp-summary-label">Ukupan iznos</span>
+                        <span className="pp-summary-value">{fmt(total, currency)}</span>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
-// ─── Page ────────────────────────────────────────────────────
 export default function PaymentsPage() {
   const [transactions, setTransactions] = useState([]);
   const [selectedTx, setSelectedTx]     = useState(null);
@@ -420,7 +418,7 @@ export default function PaymentsPage() {
   return (
     <div className="pp-bg">
       <img src="/bank-logo.png" alt="logo" className="pp-logo" />
-      <MenuDropdown />
+      <Sidebar />
 
       <div className="pp-wrapper">
         {/* Page header */}
@@ -439,22 +437,21 @@ export default function PaymentsPage() {
               {selectedTx ? "Detalji plaćanja" : "Pregled plaćanja"}
             </h2>
           </div>
-          <button className="pp-new-btn" onClick={() => navigate("/payments/new")}>
+          <button className="pp-new-btn" onClick={() => navigate("/payment")}>
             + Novo plaćanje
           </button>
         </div>
 
-        {/* Card */}
-        <div className="pp-card">
-          {loading ? (
-            <div className="pp-loading">Učitavanje...</div>
-          ) : selectedTx ? (
-            <PaymentDetail tx={selectedTx} onBack={() => setSelectedTx(null)} />
-          ) : (
-            <PaymentList transactions={transactions} onSelect={setSelectedTx} />
-          )}
+                <div className="pp-card">
+                    {loading ? (
+                        <div className="pp-loading">Učitavanje...</div>
+                    ) : selectedTx ? (
+                        <PaymentDetail tx={selectedTx} onBack={() => setSelectedTx(null)} />
+                    ) : (
+                        <PaymentList transactions={transactions} onSelect={setSelectedTx} />
+                    )}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

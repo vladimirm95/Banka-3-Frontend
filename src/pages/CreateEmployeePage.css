@@ -138,6 +138,8 @@
 
 .form-group input,
 .form-group select {
+  appearance: none;
+  -webkit-appearance: none;
   height: 54px;
   width: 100%;
   box-sizing: border-box;
@@ -281,6 +283,7 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 700;
+  font-family: 'Inter', sans-serif;
   transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   white-space: nowrap;
 }
@@ -369,6 +372,7 @@
   .create-btn,
   .form-group input,
   .form-group select {
+    font-family: 'Inter', sans-serif;
     height: 50px;
     border-radius: 14px;
   }

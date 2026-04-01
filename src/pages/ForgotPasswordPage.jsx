@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { requestPasswordReset } from "../services/AuthService";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar.jsx";
 import "./ChangePasswordPage.css";
 
 export default function ForgotPasswordPage() {

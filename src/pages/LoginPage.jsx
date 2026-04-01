@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { login } from "../services/AuthService";
-import { getClientByEmail } from "../services/ClientService";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -19,57 +18,57 @@ export default function LoginPage() {
       return;
     }
 
-    if (!email.includes("@")) {
-      setMessage("Email nije validan");
-      return;
-    }
-
     setLoading(true);
     setMessage("");
 
     try {
+      // 1. Prvo radimo login da dobijemo tokene
       const data = await login(email, password);
 
+      // 2. OBAVEZNO upisujemo tokene odmah, jer sledeći API pozivi 
+      // u ClientService/EmployeeService koriste ove tokene iz localStorage
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      if (data.userId) localStorage.setItem("userId", data.userId);
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
 
-      // TODO: Tehnički dug — backend treba da uvede GET /api/me endpoint
-      // koji vraća ulogovanog korisnika sa rolom, umesto da frontend pogađa
-      // rolu probanjem /api/clients endpointa.
-      try {
-        const client = await getClientByEmail(email);
-        if (client) {
-          localStorage.setItem("userRole", "client");
-          localStorage.setItem("userId", client.id);
-          navigate("/dashboard");
-          return;
-        }
-      } catch {
-        // Nije client — nastavljamo kao employee
+      // 3. Utvrđujemo ulogu (Role Detection)
+      // Pošto backend ne vraća ulogu u login odgovoru, proveravamo bazu klijenata
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      const permissions = data.permissions || [];
+
+      if (permissions.includes("admin")) {
+        localStorage.setItem("userRole", "employee");  // admin JE employee
+        navigate("/employees");
+      } else if (permissions.length > 0) {
+        localStorage.setItem("userRole", "employee");
+        navigate("/employees");
+      } else {
+        localStorage.setItem("userRole", "client");
+        navigate("/dashboard");
       }
 
-      localStorage.setItem("userRole", "employee");
-      navigate("/employees");
     } catch (err) {
+      console.error("Login error:", err);
       if (err.response) {
         if (err.response.status === 401) {
           setMessage("Pogrešan email ili lozinka");
         } else {
-          setMessage("Greška pri prijavljivanju. Pokušajte ponovo.");
+          setMessage("Greška na serveru pri prijavi.");
         }
-      } else if (err.request) {
-        setMessage("Greška u konekciji sa serverom");
       } else {
-        setMessage(err.message || "Nepoznata greška");
+        setMessage("Mrežna greška. Proverite da li je Backend pokrenut.");
       }
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userRole");
     } finally {
       setLoading(false);
     }
   };
 
   const handleForgotPassword = () => {
-      navigate("/forgot-password");
+    navigate("/forgot-password");
   };
 
   return (
@@ -85,13 +84,13 @@ export default function LoginPage() {
           <div className="form-field">
             <label htmlFor="email">EMAIL</label>
             <div className="input-wrapper">
-              <span className="input-icon">✉</span>
               <input
                 id="email"
                 type="email"
                 placeholder="unesite adresu..."
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </div>
           </div>
@@ -99,25 +98,24 @@ export default function LoginPage() {
           <div className="form-field">
             <label htmlFor="password">LOZINKA</label>
             <div className="input-wrapper">
-              <span className="input-icon">🔒</span>
               <input
                 id="password"
                 type="password"
                 placeholder="unesite lozinku..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
-              <span className="input-icon right">👁</span>
             </div>
           </div>
-
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? "Prijavljivanje..." : "Prijavi se"}
-          </button>
 
           <p className="forgot-password" onClick={handleForgotPassword}>
             Zaboravili ste lozinku?
           </p>
+
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "Prijavljivanje..." : "Prijavi se"}
+          </button>
 
           {message && <p className="message">{message}</p>}
         </form>

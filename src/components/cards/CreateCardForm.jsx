@@ -38,32 +38,30 @@ function CreateCardForm({ accounts, onCardCreated }) {
     setSuccess("");
 
     if (!formData.accountNumber) {
-      setError("Trebate da izaberete račun");
+      setError("Trebate da izaberete račun.");
       return;
     }
 
     if (!canRequestCard()) {
       const currentCards = selectedAccount.cardCount || 0;
       if (selectedAccount.type === "personal" && currentCards >= 2) {
-        setError("❌ Lični račun može imati maksimalno 2 kartice.");
+        setError("Lični račun može imati maksimalno 2 kartice.");
       } else {
-        setError("❌ Poslovni račun može imati maksimalno 1 karticu.");
+        setError("Poslovni račun može imati maksimalno 1 karticu.");
       }
       return;
     }
 
     try {
       setLoading(true);
-      const response = await requestCard({
+      await requestCard({
         accountNumber: formData.accountNumber,
         cardType: "Debit",
       });
-
-      setSuccess("📧 Kartica je zatražena!");
+      setSuccess("Kartica je zatražena!");
       setStep("verify-code");
-
     } catch (err) {
-      setError(err.message || "Greška pri zahtevanju kartice");
+      setError(err.message || "Greška pri zahtevanju kartice.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -77,26 +75,23 @@ function CreateCardForm({ accounts, onCardCreated }) {
 
     try {
       setLoading(true);
-
       const response = await verifyCardRequest({
         accountNumber: formData.accountNumber,
         verificationCode: verificationCode,
       });
 
-      setSuccess("✅ " + response.message);
-      
+      setSuccess(response.message);
+
       setTimeout(async () => {
         const updatedAccounts = await getUserAccounts();
         onCardCreated(response, updatedAccounts);
-        
         setFormData({ accountNumber: "" });
         setVerificationCode("");
         setStep("select-account");
         setSelectedAccount(null);
       }, 2000);
-
     } catch (err) {
-      setError(err.message || "Greška pri kreiranju kartice");
+      setError(err.message || "Greška pri kreiranju kartice.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -104,118 +99,123 @@ function CreateCardForm({ accounts, onCardCreated }) {
   };
 
   return (
-    <form className="create-card-form" onSubmit={
-      step === "select-account" ? handleRequestCard : handleVerifyCode
-    }>
-      <h2>Zatraži novu karticu</h2>
+      <form className="create-card-form" onSubmit={
+        step === "select-account" ? handleRequestCard : handleVerifyCode
+      }>
+        <h2>Zatraži novu karticu</h2>
 
-      {error && <div className="message error">{error}</div>}
-      {success && <div className="message success">{success}</div>}
+        {error && <div className="message error">{error}</div>}
+        {success && <div className="message success">{success}</div>}
 
-      {step === "select-account" && (
-        <>
-          <div className="form-group">
-            <label htmlFor="accountNumber">Izaberite račun *</label>
-            <select
-              id="accountNumber"
-              name="accountNumber"
-              value={formData.accountNumber}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="">-- Izaberite račun --</option>
+        {step === "select-account" && (
+            <>
+              <div className="form-group">
+                <label htmlFor="accountNumber">Izaberite račun *</label>
+                <select
+                    id="accountNumber"
+                    name="accountNumber"
+                    value={formData.accountNumber}
+                    onChange={handleChange}
+                    disabled={loading}
+                >
+                  <option value="">-- Izaberite račun --</option>
 
-              {personalAccounts.length > 0 && (
-                <optgroup label="Lični računi (Max 2 kartice)">
-                  {personalAccounts.map(account => {
-                    const canAdd = (account.cardCount || 0) < 2;
-                    return (
-                      <option 
-                        key={account.id} 
-                        value={account.accountNumber}
-                        disabled={!canAdd}
-                      >
-                        {account.accountName} - {account.currency}
-                        {!canAdd ? " (Popunjeno)" : ` (${account.cardCount}/2)`}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-              )}
+                  {personalAccounts.length > 0 && (
+                      <optgroup label="Lični računi (Max 2 kartice)">
+                        {personalAccounts.map(account => {
+                          const canAdd = (account.cardCount || 0) < 2;
+                          return (
+                              <option
+                                  key={account.id}
+                                  value={account.accountNumber}
+                                  disabled={!canAdd}
+                              >
+                                {account.accountName} - {account.currency}
+                                {!canAdd ? " (Popunjeno)" : ` (${account.cardCount}/2)`}
+                              </option>
+                          );
+                        })}
+                      </optgroup>
+                  )}
 
-              {businessAccounts.length > 0 && (
-                <optgroup label="Poslovni računi (Max 1 kartica)">
-                  {businessAccounts.map(account => {
-                    const canAdd = (account.cardCount || 0) < 1;
-                    return (
-                      <option 
-                        key={account.id} 
-                        value={account.accountNumber}
-                        disabled={!canAdd}
-                      >
-                        {account.accountName} - {account.currency}
-                        {!canAdd ? " (Popunjeno)" : ` (${account.cardCount}/1)`}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-              )}
-            </select>
-          </div>
+                  {businessAccounts.length > 0 && (
+                      <optgroup label="Poslovni računi (Max 1 kartica)">
+                        {businessAccounts.map(account => {
+                          const canAdd = (account.cardCount || 0) < 1;
+                          return (
+                              <option
+                                  key={account.id}
+                                  value={account.accountNumber}
+                                  disabled={!canAdd}
+                              >
+                                {account.accountName} - {account.currency}
+                                {!canAdd ? " (Popunjeno)" : ` (${account.cardCount}/1)`}
+                              </option>
+                          );
+                        })}
+                      </optgroup>
+                  )}
+                </select>
+              </div>
 
-          <button 
-            type="submit" 
-            className="submit-btn"
-            disabled={loading || !formData.accountNumber || !canRequestCard()}
-          >
-            {loading ? "⏳ Slanje zahteva..." : "📧 Zatraži karticu"}
-          </button>
-        </>
-      )}
+              <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={loading || !formData.accountNumber || !canRequestCard()}
+              >
+                {loading ? "Slanje zahteva..." : "Zatraži karticu"}
+              </button>
+            </>
+        )}
 
-      {step === "verify-code" && (
-        <>
-          <div className="email-sent-section">
-            <div className="email-icon">📧</div>
-            <p className="email-message">Kartica je zatražena!</p>
-          </div>
+        {step === "verify-code" && (
+            <>
+              <div className="email-sent-section">
+                <div className="email-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                </div>
+                <p className="email-message">Kartica je zatražena!</p>
+              </div>
 
-          <div className="form-group verification-group">
-            <label htmlFor="verificationCode">Kod (ako je potreban) *</label>
-            <input
-              id="verificationCode"
-              type="text"
-              placeholder="000000"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              disabled={loading}
-              className="code-input"
-            />
-          </div>
+              <div className="form-group verification-group">
+                <label htmlFor="verificationCode">Kod (ako je potreban) *</label>
+                <input
+                    id="verificationCode"
+                    type="text"
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    disabled={loading}
+                    className="code-input"
+                />
+              </div>
 
-          <button 
-            type="submit"
-            className="submit-btn verify-btn"
-            disabled={loading}
-          >
-            {loading ? "⏳ Kreiram karticu..." : "✓ Potvrdi"}
-          </button>
+              <button
+                  type="submit"
+                  className="submit-btn verify-btn"
+                  disabled={loading}
+              >
+                {loading ? "Kreiranje kartice..." : "Potvrdi"}
+              </button>
 
-          <button 
-            type="button"
-            className="cancel-btn"
-            onClick={() => {
-              setStep("select-account");
-              setVerificationCode("");
-              setError("");
-            }}
-            disabled={loading}
-          >
-            ← Nazad
-          </button>
-        </>
-      )}
-    </form>
+              <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => {
+                    setStep("select-account");
+                    setVerificationCode("");
+                    setError("");
+                  }}
+                  disabled={loading}
+              >
+                Nazad
+              </button>
+            </>
+        )}
+      </form>
   );
 }
 

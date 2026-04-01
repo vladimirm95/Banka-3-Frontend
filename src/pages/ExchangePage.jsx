@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getExchangeRates, performExchange } from "../services/ExchangeService";
+import { getExchangeRates } from "../services/ExchangeService";
+import { transferBetweenOwnAccounts } from "../services/TransactionService";
+import { getAccounts } from "../services/AccountService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./ExchangePage.css";
 
 function fmt(amount, currency = "RSD") {
@@ -19,8 +22,11 @@ export default function ExchangePage() {
     const navigate = useNavigate();
 
     const [rates, setRates] = useState(null);
+    const [accounts, setAccounts] = useState([]);
     const [fromCurrency, setFromCurrency] = useState("EUR");
     const [toCurrency, setToCurrency] = useState("RSD");
+    const [fromAccount, setFromAccount] = useState("");
+    const [toAccount, setToAccount] = useState("");
     const [amount, setAmount] = useState("");
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -32,10 +38,16 @@ export default function ExchangePage() {
         let cancelled = false;
         const load = async () => {
             try {
-                const data = await getExchangeRates();
-                if (!cancelled) setRates(data);
+                const [ratesData, accountsData] = await Promise.all([
+                    getExchangeRates(),
+                    getAccounts(),
+                ]);
+                if (!cancelled) {
+                    setRates(ratesData);
+                    setAccounts(accountsData || []);
+                }
             } catch {
-                if (!cancelled) setError("Greška pri učitavanju kursne liste.");
+                if (!cancelled) setError("Greška pri učitavanju podataka.");
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -46,17 +58,53 @@ export default function ExchangePage() {
 
     const currencies = rates ? Object.keys(rates) : [];
 
+    const fromAccounts = accounts.filter(a => a.currency === fromCurrency);
+    const toAccounts = accounts.filter(a => a.currency === toCurrency);
+
+    const fromAccountObj = accounts.find(a => a.account_number === fromAccount) || null;
+    const toAccountObj = accounts.find(a => a.account_number === toAccount) || null;
+
     const currentRate = rates && fromCurrency && toCurrency
         ? rates[fromCurrency] / rates[toCurrency]
         : null;
 
-    const convertedAmount = currentRate && amount
-        ? parseFloat(amount) * currentRate
+    const parsedAmount = parseFloat(amount) || 0;
+
+    const convertedAmount = currentRate && parsedAmount > 0
+        ? parsedAmount * currentRate
+        : null;
+
+    const insufficientFunds = fromAccountObj != null && parsedAmount > 0
+        && parsedAmount > fromAccountObj.balance;
+
+    const showPreview = fromAccountObj != null && toAccountObj != null && parsedAmount > 0;
+
+    const projectedFromBalance = fromAccountObj != null ? fromAccountObj.balance - parsedAmount : null;
+    const projectedToBalance = toAccountObj != null && convertedAmount != null
+        ? toAccountObj.balance + convertedAmount
         : null;
 
     const handleSwap = () => {
         setFromCurrency(toCurrency);
         setToCurrency(fromCurrency);
+        setFromAccount("");
+        setToAccount("");
+        setResult(null);
+        setSuccess("");
+        setError("");
+    };
+
+    const handleFromCurrencyChange = (e) => {
+        setFromCurrency(e.target.value);
+        setFromAccount("");
+        setResult(null);
+        setSuccess("");
+        setError("");
+    };
+
+    const handleToCurrencyChange = (e) => {
+        setToCurrency(e.target.value);
+        setToAccount("");
         setResult(null);
         setSuccess("");
         setError("");
@@ -72,6 +120,14 @@ export default function ExchangePage() {
             setError("Izaberite različite valute.");
             return;
         }
+        if (!fromAccount) {
+            setError("Izaberite račun sa kog vršite konverziju.");
+            return;
+        }
+        if (!toAccount) {
+            setError("Izaberite račun na koji vršite konverziju.");
+            return;
+        }
 
         setExchanging(true);
         setError("");
@@ -79,10 +135,10 @@ export default function ExchangePage() {
         setResult(null);
 
         try {
-            const res = await performExchange(fromCurrency, toCurrency, parsed);
+            const res = await transferBetweenOwnAccounts(fromAccount, toAccount, parsed);
             setResult(res);
             setSuccess(
-                `Uspešno konvertovano ${fmt(res.originalAmount, res.fromCurrency)} u ${fmt(res.convertedAmount, res.toCurrency)}`
+                `Uspešno konvertovano ${fmt(res.initial_amount, fromCurrency)} u ${fmt(res.final_amount, res.currency)}`
             );
         } catch {
             setError("Greška pri izvršavanju konverzije.");
@@ -110,6 +166,7 @@ export default function ExchangePage() {
     return (
         <div className="ex-page">
             <div className="ex-content">
+                <Sidebar/>
 
                 {/* ── HEADER ── */}
                 <div className="ex-header">
@@ -124,16 +181,36 @@ export default function ExchangePage() {
                 {/* ── EXCHANGE CARD ── */}
                 <div className="ex-card">
 
-                    {/* From */}
+                    {/* From currency */}
                     <div className="ex-field-group">
                         <label className="ex-label">Iz valute</label>
                         <select
                             className="ex-select"
                             value={fromCurrency}
-                            onChange={e => { setFromCurrency(e.target.value); setResult(null); setSuccess(""); setError(""); }}
+                            onChange={handleFromCurrencyChange}
                         >
                             {currencies.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
+                    </div>
+
+                    {/* From account */}
+                    <div className="ex-field-group">
+                        <label className="ex-label">Sa računa</label>
+                        <select
+                            className="ex-select"
+                            value={fromAccount}
+                            onChange={e => { setFromAccount(e.target.value); setResult(null); setSuccess(""); setError(""); }}
+                        >
+                            <option value="">-- Izaberite račun --</option>
+                            {fromAccounts.map(a => (
+                                <option key={a.account_number} value={a.account_number}>
+                                    {a.account_number} ({fmt(a.balance, a.currency)})
+                                </option>
+                            ))}
+                        </select>
+                        {fromAccounts.length === 0 && (
+                            <p className="ex-msg ex-msg--error">Nemate račun u valuti {fromCurrency}.</p>
+                        )}
                     </div>
 
                     <div className="ex-field-group">
@@ -159,16 +236,36 @@ export default function ExchangePage() {
                         </button>
                     </div>
 
-                    {/* To */}
+                    {/* To currency */}
                     <div className="ex-field-group">
                         <label className="ex-label">U valutu</label>
                         <select
                             className="ex-select"
                             value={toCurrency}
-                            onChange={e => { setToCurrency(e.target.value); setResult(null); setSuccess(""); setError(""); }}
+                            onChange={handleToCurrencyChange}
                         >
                             {currencies.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
+                    </div>
+
+                    {/* To account */}
+                    <div className="ex-field-group">
+                        <label className="ex-label">Na račun</label>
+                        <select
+                            className="ex-select"
+                            value={toAccount}
+                            onChange={e => { setToAccount(e.target.value); setResult(null); setSuccess(""); setError(""); }}
+                        >
+                            <option value="">-- Izaberite račun --</option>
+                            {toAccounts.map(a => (
+                                <option key={a.account_number} value={a.account_number}>
+                                    {a.account_number} ({fmt(a.balance, a.currency)})
+                                </option>
+                            ))}
+                        </select>
+                        {toAccounts.length === 0 && (
+                            <p className="ex-msg ex-msg--error">Nemate račun u valuti {toCurrency}.</p>
+                        )}
                     </div>
 
                     <div className="ex-field-group">
@@ -185,11 +282,43 @@ export default function ExchangePage() {
                         </p>
                     )}
 
+                    {/* ── PREVIEW ── */}
+                    {showPreview && (
+                        <div className="ex-preview">
+                            <p className="ex-preview-title">Pregled nakon konverzije</p>
+                            <div className="ex-preview-row">
+                                <span className="ex-preview-label">Sa računa ({fromCurrency})</span>
+                                <span className="ex-preview-values">
+                                    <span className="ex-preview-current">{fmt(fromAccountObj.balance, fromCurrency)}</span>
+                                    <span className="ex-preview-arrow">→</span>
+                                    <span className={`ex-preview-after ${insufficientFunds ? "ex-preview-after--negative" : ""}`}>
+                                        {fmt(projectedFromBalance, fromCurrency)}
+                                    </span>
+                                </span>
+                            </div>
+                            <div className="ex-preview-row">
+                                <span className="ex-preview-label">Na račun ({toCurrency})</span>
+                                <span className="ex-preview-values">
+                                    <span className="ex-preview-current">{fmt(toAccountObj.balance, toCurrency)}</span>
+                                    <span className="ex-preview-arrow">→</span>
+                                    <span className="ex-preview-after">
+                                        {projectedToBalance != null ? fmt(projectedToBalance, toCurrency) : "—"}
+                                    </span>
+                                </span>
+                            </div>
+                            {insufficientFunds && (
+                                <p className="ex-msg ex-msg--error" style={{ marginTop: 10 }}>
+                                    Nedovoljno sredstava na računu.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     {/* Submit */}
                     <button
                         className="ex-submit-btn"
                         onClick={handleExchange}
-                        disabled={exchanging || !amount}
+                        disabled={exchanging || !amount || !fromAccount || !toAccount || insufficientFunds}
                     >
                         {exchanging ? "Obrada..." : "Izvrši konverziju"}
                     </button>

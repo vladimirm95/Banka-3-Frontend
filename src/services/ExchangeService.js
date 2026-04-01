@@ -1,44 +1,39 @@
+// src/services/ExchangeService.js
 import api from "./api.js";
 
-const USE_MOCK = true;
-
-// Kursevi prema RSD kao baznoj valuti
-const MOCK_RATES = {
-    RSD: 1,
-    EUR: 117.15,
-    USD: 107.80,
-    CHF: 121.45,
-    GBP: 136.90,
-};
-
 export async function getExchangeRates() {
-    if (USE_MOCK) {
-        await new Promise(r => setTimeout(r, 300));
-        return MOCK_RATES;
-    }
-    const response = await api.get("/exchange-rates");
-    return response.data;
+  const response = await api.get("/exchange-rates");
+
+  const ratesMap = {};
+  if (response.data) {
+    response.data.forEach((r) => {
+      ratesMap[r.currencyCode] = r.middleRate;
+    });
+  }
+
+  return ratesMap;
 }
 
-export async function performExchange(fromCurrency, toCurrency, amount) {
-    if (USE_MOCK) {
-        await new Promise(r => setTimeout(r, 500));
-        const fromRate = MOCK_RATES[fromCurrency];
-        const toRate = MOCK_RATES[toCurrency];
-        const amountInRSD = amount * fromRate;
-        const convertedAmount = amountInRSD / toRate;
-        return {
-            fromCurrency,
-            toCurrency,
-            originalAmount: amount,
-            convertedAmount,
-            rate: fromRate / toRate,
-        };
-    }
-    const response = await api.post("/transactions/transfer", {
-        from_account: fromCurrency,
-        to_account: toCurrency,
-        amount,
-    });
-    return response.data;
+// 2. Izvršavanje konverzije (Realni API poziv)
+export async function performExchange(from, to, amount) {
+  // Backend: POST /api/exchange/convert
+  const response = await api.post("/exchange/convert", {
+    from_currency: from,
+    to_currency: to,
+    amount: parseFloat(amount),
+  });
+
+  return {
+    originalAmount: amount,
+    convertedAmount: response.data.converted_amount,
+    exchangeRate: response.data.exchange_rate,
+    fromCurrency: from,
+    toCurrency: to,
+  };
+}
+
+// 4. Promena statusa berze (OVO JE FALILO - trenutno MOCK)
+export async function updateExchangeStatus(exchangeId, isOpen) {
+  console.warn("updateExchangeStatus: Ruta ne postoji na backendu.");
+  return { success: true };
 }

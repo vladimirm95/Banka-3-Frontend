@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAccounts, getAccountTransactions } from "../services/AccountService";
 import { getCurrentClient } from "../services/ClientService";
 import { getCurrentUserEmail } from "../services/AuthService";
+import Sidebar from "../components/Sidebar.jsx";
 import "./ClientDashboardPage.css";
 
 function fmt(amount, currency = "RSD") {
@@ -57,9 +58,14 @@ export default function ClientDashboardPage() {
                 if (cancelled) return;
                 setAccounts(accountsData);
 
-                if (accountsData.length > 0) {
-                    const txData = await getAccountTransactions(accountsData[0].id);
-                    if (!cancelled) setTransactions(txData);
+                // OVO JE BITNO: Proveri da li ima bar jedan račun
+                if (accountsData && accountsData.length > 0) {
+                    // Uzmi account_number (snake_case kako backend šalje)
+                    const firstAcc = accountsData[0].account_number;
+                    
+                    // Pozovi transakcije sa tim brojem
+                    const txData = await getAccountTransactions(firstAcc); 
+                    setTransactions(txData || []);
                 }
             } catch (err) {
                 if (!cancelled) setError("Greška pri učitavanju podataka.");
@@ -93,7 +99,7 @@ export default function ClientDashboardPage() {
     const quickActions = [
         {
             label: "Uplata",
-            target: "/deposit",
+            target: "/payment",
             icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
@@ -152,7 +158,6 @@ export default function ClientDashboardPage() {
 
     return (
         <div className="dash-shell">
-
             {/* ── Scrollable content ── */}
             <div className="dash-content">
 
@@ -162,6 +167,7 @@ export default function ClientDashboardPage() {
                         <p className="dash-greeting">Dobro došli</p>
                         <p className="dash-name">{displayName}</p>
                     </div>
+                    <Sidebar/>
                     <button className="dash-bell" aria-label="Obaveštenja">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -198,11 +204,19 @@ export default function ClientDashboardPage() {
                 </div>
                 <div className="dash-accounts-scroll">
                     {accounts.map((acc) => (
-                        <button key={acc.id} className="dash-account-pill"
-                                onClick={() => navigate(`/accounts/${acc.id}`)}>
-                            <p className="dash-pill-name">{acc.name}</p>
-                            <p className="dash-pill-number">{acc.number}</p>
-                            <p className="dash-pill-bal">{fmt(acc.balance, acc.currency)}</p>
+                        <button 
+                            // Koristimo account_number jer je to jedinstveni string iz tvog JSON-a
+                            key={acc.account_number} 
+                            className="dash-account-pill"
+                            // Navigacija na dugački broj računa
+                            onClick={() => navigate(`/accounts/${acc.account_number}`)} 
+                        >
+                            <p className="dash-pill-name">{acc.account_name}</p>
+                            <p className="dash-pill-number">{acc.account_number}</p>
+                            <p className="dash-pill-bal">
+                            {/* Koristi balans i valutu direktno iz JSON-a */}
+                            {fmt(acc.balance, acc.currency)}
+                            </p>
                         </button>
                     ))}
                 </div>
@@ -229,10 +243,13 @@ export default function ClientDashboardPage() {
                     <p className="dash-section-title">Poslednje transakcije</p>
                 </div>
                 <div className="dash-tx-list">
-                    {transactions.slice(0, 5).map((tx) => (
-                        <div key={tx.id} className="dash-tx-row">
-                            <div className={`dash-tx-icon ${tx.amount > 0 ? "dash-tx-icon--in" : "dash-tx-icon--out"}`}>
-                                {tx.amount > 0 ? (
+                    {(Array.isArray(transactions) ? transactions : []).slice(0, 5).map((tx, index) => {
+                        const amt = tx.final_amount || tx.initial_amount || 0;
+                        const isIncoming = mainAccount && tx.to_account === mainAccount.account_number;
+                        return (
+                        <div key={tx.transaction_code || `${tx.id}-${index}`} className="dash-tx-row">
+                            <div className={`dash-tx-icon ${isIncoming ? "dash-tx-icon--in" : "dash-tx-icon--out"}`}>
+                                {isIncoming ? (
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <line x1="12" y1="5" x2="12" y2="19"/>
@@ -247,14 +264,15 @@ export default function ClientDashboardPage() {
                                 )}
                             </div>
                             <div className="dash-tx-info">
-                                <p className="dash-tx-desc">{tx.desc}</p>
-                                <p className="dash-tx-date">{new Date(tx.date).toLocaleDateString("sr-RS")}</p>
+                                <p className="dash-tx-desc">{tx.purpose || tx.reason || "Transakcija"}</p>
+                                <p className="dash-tx-date">{tx.timestamp ? new Date(tx.timestamp).toLocaleDateString("sr-RS") : "---"}</p>
                             </div>
-                            <p className={`dash-tx-amt ${tx.amount > 0 ? "dash-tx-amt--in" : ""}`}>
-                                {tx.amount > 0 ? "+" : ""}{fmt(tx.amount, "RSD")}
+                            <p className={`dash-tx-amt ${isIncoming ? "dash-tx-amt--in" : ""}`}>
+                                {isIncoming ? "+" : "-"}{fmt(amt, mainAccount?.currency || "RSD")}
                             </p>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
             </div>

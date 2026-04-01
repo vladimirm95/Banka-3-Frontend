@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { transferFunds } from "../services/TransactionService";
+import TotpModal from "../components/TotpModal";
+import Sidebar from "../components/Sidebar.jsx";
 import "./PaymentPage.css";
 
 const EMPTY_FORM = {
@@ -45,6 +47,8 @@ export default function PaymentPage() {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [showTotp, setShowTotp] = useState(false);
+
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -63,8 +67,12 @@ export default function PaymentPage() {
             return;
         }
 
+        setShowTotp(true);
+    }
+
+    async function handleTotpConfirm(totpCode) {
+        setSubmitting(true);
         try {
-            setSubmitting(true);
             await transferFunds({
                 sender_account: form.sender_account.trim(),
                 recipient_account: form.recipient_account.trim(),
@@ -73,16 +81,15 @@ export default function PaymentPage() {
                 payment_code: form.payment_code.trim(),
                 reference_number: form.reference_number.trim(),
                 purpose: form.purpose.trim(),
-            });
+            }, totpCode);
+            setShowTotp(false);
             setSuccessMsg("Transakcija je uspešno izvršena.");
             setForm(EMPTY_FORM);
         } catch (err) {
-            setSubmitError(
-                err.response?.data?.message ||
-                err.response?.data?.error ||
-                err.message ||
-                "Greška pri izvršavanju transakcije."
-            );
+            const msg = err.response?.status === 403
+                ? "Neispravan TOTP kod."
+                : err.response?.data?.message || err.message || "Greška pri izvršavanju transakcije.";
+            throw new Error(msg);
         } finally {
             setSubmitting(false);
         }
@@ -90,6 +97,7 @@ export default function PaymentPage() {
 
     return (
         <div className="pay-shell">
+            <Sidebar/>
             <div className="pay-content">
 
                 {/* Header */}
@@ -257,6 +265,13 @@ export default function PaymentPage() {
 
                 </form>
             </div>
+            {showTotp && (
+                <TotpModal
+                    onConfirm={handleTotpConfirm}
+                    onCancel={() => setShowTotp(false)}
+                    loading={submitting}
+                />
+            )}
         </div>
     );
 }

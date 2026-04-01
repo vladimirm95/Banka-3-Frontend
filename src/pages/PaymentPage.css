@@ -1,7 +1,6 @@
 .pay-shell {
     min-height: 100vh;
-    background-color: #0A0E17;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     color: #f1f5f9;
 }
 
@@ -22,6 +21,7 @@
 .pay-back-btn {
     width: 40px;
     height: 40px;
+    padding: 0;
     border-radius: 12px;
     background: #111827;
     border: 1px solid #1e293b;
@@ -99,7 +99,7 @@
     border-radius: 10px;
     padding: 11px 14px;
     color: #f1f5f9;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     width: 100%;
     transition: border-color 0.2s;
@@ -186,7 +186,7 @@
     border-radius: 12px;
     padding: 13px;
     color: #94a3b8;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.92rem;
     font-weight: 500;
     cursor: pointer;
@@ -205,7 +205,7 @@
     border-radius: 12px;
     padding: 13px;
     color: #fff;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.92rem;
     font-weight: 600;
     cursor: pointer;

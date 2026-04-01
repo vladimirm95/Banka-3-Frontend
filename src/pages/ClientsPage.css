@@ -1,0 +1,46 @@
+@import "./EmployeesPage.css";
+
+.client-card-shell {
+    z-index: 1;
+}
+
+.client-table-wrap {
+    padding: 0;
+}
+
+.client-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #e2e8f0;
+    min-width: 840px;
+}
+
+.client-table thead th {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #94a3b8;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.client-table tbody td {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    font-size: 14px;
+}
+
+.client-row {
+    cursor: pointer;
+    transition: background 0.18s ease;
+}
+
+.client-row:hover {
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.client-empty-state {
+    text-align: center;
+    color: #94a3b8;
+    padding: 24px;
+}
