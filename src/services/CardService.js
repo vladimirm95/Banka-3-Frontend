@@ -2,6 +2,7 @@ import api from "./api.js";
 
 export async function getUserCards() {
   const response = await api.get("/cards");
+
   return (response.data || []).map(card => ({
     id: card.card_number,
     cardNumber: card.card_number,
@@ -17,6 +18,7 @@ export async function getUserCards() {
 
 export async function getUserAccounts() {
   const response = await api.get("/accounts");
+
   return (response.data || []).map(acc => ({
     id: acc.account_number,
     accountNumber: acc.account_number,
@@ -31,26 +33,17 @@ export async function getUserAccounts() {
 export async function requestCard(cardData) {
   const response = await api.post("/cards", {
     account_number: cardData.accountNumber,
-    card_type: cardData.cardType || "Debit",
+    card_type: "debit",
+    card_brand: "visa"
   });
+
   return response.data;
 }
 
-export async function verifyCardRequest(data) {
-  const response = await api.get("/cards/confirm", {
-    params: { token: data.verificationCode },
-  });
-  return {
-    ...response.data,
-    message: "Kartica je uspešno kreirana!",
-  };
-}
-
 export async function blockCard(cardNumber) {
-  return api.patch(`/cards/${cardNumber}/block`);
-}
+  return api.patch(`/cards/${cardNumber}/block`);}
 
 export function formatCardNumber(num) {
-  if (!num) return "**** **** **** ****";
+  if (!num) return "** ** ** **";
   return num.replace(/\d{4}(?=.)/g, "$& ");
 }
