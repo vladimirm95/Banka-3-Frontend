@@ -28,8 +28,11 @@ export async function getClients() {
 }
 
 export async function getClientById(id) {
-  const response = await api.get(`/clients/${id}`);
-  return normalizeClient(response.data);
+  const response = await api.get('/clients');
+  const clientData = response.data.clients
+    ? response.data.clients.find((c) => c.id === parseInt(id))
+    : response.data;
+  return normalizeClient(clientData);
 }
 
 export async function getClientByEmail(email) {
