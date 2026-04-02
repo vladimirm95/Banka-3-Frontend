@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getAccounts } from "../services/AccountService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./AccountsPage.css";
@@ -16,8 +16,19 @@ function fmt(amount, currency = "RSD") {
   );
 }
 
+function isBusinessAccount(account) {
+  const type = String(account?.account_type || "").toLowerCase();
+  return (
+    type.includes("business") ||
+    type.includes("poslov") ||
+    Boolean(account?.company_name)
+  );
+}
+
 export default function AccountsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,13 +87,13 @@ export default function AccountsPage() {
         <div className="accs-header">
           <button
               className="ad-back-btn"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(isAdmin ? "/employees" : "/dashboard")}
           >
             <ChevronLeftIcon />
           </button>
 
           <div className="accs-title-block">
-            <p>Moji računi</p>
+            <p>{isAdmin ? "Admin" : "Moji računi"}</p>
             <h1>Pregled računa</h1>
           </div>
         </div>
@@ -153,11 +164,19 @@ export default function AccountsPage() {
                     <tr
                       key={a.account_number}
                       className="accs-row"
-                      onClick={() =>
+                      onClick={() => {
+                        if (isAdmin) {
+                          if (isBusinessAccount(a)) {
+                            navigate(`/admin/accounts/business/${a.account_number}`);
+                          } else {
+                            navigate(`/admin/accounts/${a.account_number}`);
+                          }
+                        } else {
                           navigate(`/accounts/${a.account_number}`, {
                             state: { from: "/accounts" },
-                          })
-                      }
+                          });
+                        }
+                      }}
                     >
                       <td className="accs-number">{a.account_number}</td>
                       <td>{a.account_name}</td>

@@ -51,6 +51,7 @@ export default function AppRouter() {
           <Route path="/accounts/create" element={<ProtectedRoute requiredRole="client"><CreateAccountPage /></ProtectedRoute>} />
           <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee"><AccountsPage /></ProtectedRoute>} />
           <Route path="/admin/accounts/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/admin/accounts/business/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
           <Route path="/employees" element={<ProtectedRoute requiredRole="employee"><EmployeesPage /></ProtectedRoute>} />
 
           {/*Stranica postoji, ALI putanja ne radi za sada posto se userRole u localStorage postavlja na 'client'

@@ -227,6 +227,124 @@
     transition: width 0.4s ease;
 }
 
+/* ── Actions ── */
+.aad-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #1e293b;
+    flex-wrap: wrap;
+}
+
+.aad-action-btn {
+    padding: 9px 18px;
+    border-radius: 10px;
+    background: #3b82f6;
+    border: none;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.aad-action-btn:hover:not(:disabled) {
+    background: #2563eb;
+}
+
+.aad-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.aad-action-btn--secondary {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+.aad-action-btn--secondary:hover:not(:disabled) {
+    background: #263348;
+}
+
+/* ── Modal ── */
+.aad-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+}
+
+.aad-modal {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 18px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.aad-modal-title {
+    color: #f1f5f9;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.aad-modal-current {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.aad-modal-current strong {
+    color: #f1f5f9;
+}
+
+.aad-modal-label {
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: -8px;
+}
+
+.aad-modal-input {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #f1f5f9;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.aad-modal-input:focus {
+    border-color: #3b82f6;
+}
+
+.aad-modal-error {
+    color: #ef4444;
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.aad-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+}
+
 @media (max-width: 600px) {
     .aad-info-grid {
         grid-template-columns: 1fr;

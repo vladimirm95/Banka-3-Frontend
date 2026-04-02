@@ -32,3 +32,11 @@ export async function renameAccount(accountNumber, accountName) {
   });
   return response.data;
 }
+
+export async function updateAccountLimits(accountNumber, dailyLimit, monthlyLimit) {
+  const response = await api.patch(`/accounts/${accountNumber}/limit`, {
+    daily_limit: dailyLimit,
+    monthly_limit: monthlyLimit,
+  });
+  return response.data;
+}
