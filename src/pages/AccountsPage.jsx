@@ -52,17 +52,18 @@ export default function AccountsPage() {
 
     const filtered = useMemo(() => {
         const term = searchTerm.toLowerCase();
+
         return accounts
             .filter((a) => {
-
                 const matchesSearch =
                     !term ||
                     a.account_number?.toLowerCase().includes(term) ||
                     a.account_name?.toLowerCase().includes(term) ||
                     String(a.owner_id).includes(term);
+
                 const matchesType = !filterType || a.account_type === filterType;
-                return
-                matchesSearch && matchesType;
+
+                return matchesSearch && matchesType;
             })
             .sort((a, b) => (Number(b.balance) || 0) - (Number(a.balance) || 0));
     }, [accounts, searchTerm, filterType]);
