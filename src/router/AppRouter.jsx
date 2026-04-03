@@ -46,7 +46,7 @@ export default function AppRouter() {
           <Route path="/dashboard" element={<ProtectedRoute requiredRole="client"><ClientDashboardPage /></ProtectedRoute>} />
 
           <Route path="/accounts" element={<ProtectedRoute requiredRole="client"><AccountsPage /></ProtectedRoute>} />
-          <Route path="/accounts/create" element={<ProtectedRoute requiredRole="client"><CreateAccountPage /></ProtectedRoute>} />
+          <Route path="/accounts/create" element={<ProtectedRoute requiredRole="employee"><CreateAccountPage /></ProtectedRoute>} />
           <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee"><AccountsPage /></ProtectedRoute>} />
           <Route path="/admin/accounts/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
           <Route path="/admin/accounts/business/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
