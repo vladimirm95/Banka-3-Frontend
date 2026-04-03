@@ -62,3 +62,21 @@ export function clearClientCache() {
   clientCache = null;
   clientCacheEmail = null;
 }
+export async function createClient(clientData) {
+  const birthTimestamp = clientData.dateOfBirth
+      ? Math.floor(new Date(clientData.dateOfBirth).getTime() / 1000)
+      : 0;
+
+  const response = await api.post("/clients", {
+    first_name: clientData.firstName.trim(),
+    last_name: clientData.lastName.trim(),
+    date_of_birth: birthTimestamp,
+    gender: clientData.gender,
+    email: clientData.email.trim(),
+    phone_number: clientData.phoneNumber.replace(/\D/g, ""),
+    address: clientData.address.trim(),
+    password: clientData.password,
+  });
+
+  return response.data;
+}
