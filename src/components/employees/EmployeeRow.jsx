@@ -15,8 +15,8 @@ function EmployeeRow({ employee }) {
     return (
         <tr className="employee-row">
             <td className="cell-link" onClick={openEmployeeDetails}>{employee.id}</td>
-            <td className="cell-link" onClick={openEmployeeDetails}>{employee.first_name}</td>
-            <td className="cell-link" onClick={openEmployeeDetails}>{employee.last_name}</td>
+            <td className="cell-link" onClick={openEmployeeDetails}>{employee.firstName}</td>
+            <td className="cell-link" onClick={openEmployeeDetails}>{employee.lastName}</td>
             <td className="cell-link employee-email" onClick={openEmployeeDetails}>{employee.email}</td>
             <td className="cell-link">
                 <span className="position-badge">{employee.position}</span>

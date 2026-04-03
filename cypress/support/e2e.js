@@ -1,7 +1,6 @@
 import "./commands";
 
 beforeEach(() => {
-  cy.window().then((win) => {
-    win.localStorage.clear();
-  });
+  cy.clearCookies();
+  cy.clearLocalStorage();
 });

@@ -1,11 +1,44 @@
+const employees = [
+  {
+    id: 1,
+    first_name: "Petar",
+    last_name: "Petrovic",
+    email: "petar@primer.rs",
+    position: "Menadzer",
+  },
+  {
+    id: 2,
+    first_name: "Ana",
+    last_name: "Anic",
+    email: "ana@primer.rs",
+    position: "Analiticar",
+  },
+  {
+    id: 3,
+    first_name: "Nikola",
+    last_name: "Nikolic",
+    email: "nikola@primer.rs",
+    position: "Analiticar",
+  },
+  {
+    id: 4,
+    first_name: "Jelena",
+    last_name: "Jelic",
+    email: "jelena@primer.rs",
+    position: "HR",
+  },
+];
+
 describe("Lista zaposlenih", () => {
   beforeEach(() => {
-    cy.loginBypass();
-    cy.visit("/employees");
+    cy.stubEmployeesList(employees);
+    cy.visitAsEmployee("/employees");
+    cy.wait("@getEmployees");
   });
 
   it("employees stranica se ucitava sa heading-om", () => {
-    cy.contains("h3", "Zaposleni");
+    cy.contains("h1", "Zaposleni");
+    cy.contains("Pregled, pretraga i upravljanje zaposlenima u sistemu.");
   });
 
   it("tabela prikazuje zaposlene sa kolonama", () => {
@@ -22,15 +55,25 @@ describe("Lista zaposlenih", () => {
     cy.get(".employee-row")
       .first()
       .within(() => {
-        cy.get("td").should("contain", "Petar");
-        cy.get("td").should("contain", "Petrović");
-        cy.get("td").should("contain", "petar@primer.rs");
-        cy.get("td").should("contain", "Menadžer");
+        cy.get("td").eq(1).should("contain", "Petar");
+        cy.get("td").eq(2).should("contain", "Petrovic");
+        cy.get("td").eq(3).should("contain", "petar@primer.rs");
+        cy.get("td").eq(4).should("contain", "Menadzer");
       });
   });
 
   it("klik na red vodi na details stranicu", () => {
+    cy.stubEmployeeDetails({
+      id: 1,
+      first_name: "Petar",
+      last_name: "Petrovic",
+      email: "petar@primer.rs",
+      position: "Menadzer",
+      active: true,
+    });
+
     cy.get(".employee-row").first().find("td").first().click();
+    cy.wait("@getEmployee");
     cy.url().should("include", "/employees/1");
   });
 
@@ -42,6 +85,6 @@ describe("Lista zaposlenih", () => {
   });
 
   it("filter info prikazuje tacan broj", () => {
-    cy.get(".filter-info").should("contain", "4");
+    cy.get(".filter-info").should("contain", "4 / 4 zaposlenih");
   });
 });

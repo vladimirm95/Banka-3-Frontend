@@ -38,7 +38,7 @@ describe("PaymentPage", () => {
     cy.get(".pay-btn-submit").click();
 
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-input").should("exist");
+    cy.get(".totp-input").should("have.length", 6);
     cy.get(".totp-btn-confirm").should("exist");
     cy.get(".totp-btn-cancel").should("exist");
   });
@@ -58,8 +58,7 @@ describe("PaymentPage", () => {
     cy.get('input[name="purpose"]').type("Uplata za usluge");
 
     cy.get(".pay-btn-submit").click();
-
-    cy.get(".totp-input").type("123456");
+    unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
 
     cy.wait("@paymentRequest").then((interception) => {
@@ -96,7 +95,7 @@ describe("PaymentPage", () => {
     cy.get('input[name="purpose"]').type("Test");
 
     cy.get(".pay-btn-submit").click();
-    cy.get(".totp-input").type("123456");
+    unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
 
     cy.wait("@paymentRequest");
@@ -118,12 +117,12 @@ describe("PaymentPage", () => {
     cy.get('input[name="purpose"]').type("Test");
 
     cy.get(".pay-btn-submit").click();
-    cy.get(".totp-input").type("000000");
+    unesiTotpKod("000000");
     cy.get(".totp-btn-confirm").click();
 
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error").should("contain", "Invalid TOTP code");
+    cy.get(".totp-error").should("contain", "Neispravan TOTP kod.");
   });
 
   it("zatvara TOTP modal na Otkaži", () => {
@@ -141,3 +140,9 @@ describe("PaymentPage", () => {
     cy.get(".totp-overlay").should("not.exist");
   });
 });
+
+function unesiTotpKod(code) {
+  code.split("").forEach((digit, index) => {
+    cy.get(".totp-input").eq(index).type(digit);
+  });
+}

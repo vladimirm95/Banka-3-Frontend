@@ -1,9 +1,28 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function TotpModal({ onConfirm, onCancel, loading }) {
+export default function TotpModal({
+    open = true,
+    onConfirm,
+    onCancel,
+    loading,
+    error: externalError = "",
+}) {
     const [digits, setDigits] = useState(["", "", "", "", "", ""]);
     const [error, setError] = useState("");
     const inputs = useRef([]);
+
+    useEffect(() => {
+        if (!open) {
+            setDigits(["", "", "", "", "", ""]);
+            setError("");
+        }
+    }, [open]);
+
+    useEffect(() => {
+        if (externalError) {
+            setError(externalError);
+        }
+    }, [externalError]);
 
     const handleChange = (index, value) => {
         const digit = value.replace(/\D/g, "").slice(-1);
@@ -52,15 +71,19 @@ export default function TotpModal({ onConfirm, onCancel, loading }) {
 
     const code = digits.join("");
 
+    if (!open) {
+        return null;
+    }
+
     return (
-        <div style={{
+        <div className="totp-overlay" style={{
             position: "fixed", inset: 0, zIndex: 1000,
             background: "rgba(0,0,0,0.7)",
             backdropFilter: "blur(4px)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "24px",
         }}>
-            <div style={{
+            <div className="totp-modal" style={{
                 background: "#111827",
                 border: "1px solid #1e293b",
                 borderRadius: "16px",
@@ -88,6 +111,7 @@ export default function TotpModal({ onConfirm, onCancel, loading }) {
                 <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "16px" }}>
                     {digits.map((digit, i) => (
                         <input
+                            className="totp-input"
                             key={i}
                             ref={(el) => (inputs.current[i] = el)}
                             type="text"
@@ -115,21 +139,21 @@ export default function TotpModal({ onConfirm, onCancel, loading }) {
                 </div>
 
                 {error && (
-                    <p style={{ color: "#ef4444", fontSize: "0.85rem", textAlign: "center", marginBottom: "8px" }}>
+                    <p className="totp-error" style={{ color: "#ef4444", fontSize: "0.85rem", textAlign: "center", marginBottom: "8px" }}>
                         {error}
                     </p>
                 )}
 
                 {/* Buttons */}
                 <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                    <button onClick={onCancel} style={{
+                    <button className="totp-btn-cancel" onClick={onCancel} style={{
                         flex: 1, padding: "12px",
                         background: "transparent",
                         border: "1.5px solid #1e293b",
                         borderRadius: "10px", color: "#94a3b8",
                         fontSize: "0.92rem", fontWeight: 500, cursor: "pointer",
                     }}>Otkaži</button>
-                    <button onClick={handleConfirm} disabled={loading || code.length !== 6} style={{
+                    <button className="totp-btn-confirm" onClick={handleConfirm} disabled={loading || code.length !== 6} style={{
                         flex: 2, padding: "12px",
                         background: code.length === 6 && !loading ? "#3b82f6" : "#1e3a5f",
                         border: "none", borderRadius: "10px", color: "#fff",

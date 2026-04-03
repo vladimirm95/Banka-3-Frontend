@@ -64,7 +64,7 @@ describe("TransferPage", () => {
     cy.get(".pay-btn-submit").click();
 
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-input").should("exist");
+    cy.get(".totp-input").should("have.length", 6);
   });
 
   it("šalje POST /transactions/transfer sa tačnim payload-om i TOTP headerom", () => {
@@ -78,7 +78,7 @@ describe("TransferPage", () => {
     cy.get('input[type="number"]').type("5000");
 
     cy.get(".pay-btn-submit").click();
-    cy.get(".totp-input").type("654321");
+    unesiTotpKod("654321");
     cy.get(".totp-btn-confirm").click();
 
     cy.wait("@transferRequest").then((interception) => {
@@ -108,7 +108,7 @@ describe("TransferPage", () => {
     cy.get('input[type="number"]').type("5000");
 
     cy.get(".pay-btn-submit").click();
-    cy.get(".totp-input").type("654321");
+    unesiTotpKod("654321");
     cy.get(".totp-btn-confirm").click();
 
     cy.wait("@transferRequest");
@@ -116,3 +116,9 @@ describe("TransferPage", () => {
     cy.get(".pay-success").should("contain", "uspešno");
   });
 });
+
+function unesiTotpKod(code) {
+  code.split("").forEach((digit, index) => {
+    cy.get(".totp-input").eq(index).type(digit);
+  });
+}

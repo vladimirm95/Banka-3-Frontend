@@ -1,7 +1,6 @@
 describe("Kreiranje zaposlenog", () => {
   beforeEach(() => {
-    cy.loginBypass();
-    cy.visit("/employees/create");
+    cy.visitAsEmployee("/employees/create");
   });
 
   it("stranica se ucitava sa formom", () => {
@@ -11,41 +10,49 @@ describe("Kreiranje zaposlenog", () => {
   it("forma sadrzi sva polja", () => {
     cy.get('input[name="ime"]').should("exist");
     cy.get('input[name="prezime"]').should("exist");
-    cy.get('input[name="pol"]').should("exist");
+    cy.get('select[name="pol"]').should("exist");
     cy.get('input[name="username"]').should("exist");
     cy.get('input[name="adresa"]').should("exist");
-    cy.get('input[name="lozinka"]').should("exist");
-    cy.get('input[name="potvrda"]').should("exist");
     cy.get('input[name="telefon"]').should("exist");
     cy.get('input[name="datum"]').should("exist");
     cy.get('input[name="email"]').should("exist");
     cy.get('input[name="pozicija"]').should("exist");
+    cy.get('input[name="department"]').should("exist");
   });
 
   it("validacija - prazna polja prikazuju greske", () => {
     cy.get('button[type="submit"]').click();
-    cy.get(".error-msg").should("exist");
+    cy.get(".error-msg").should("have.length.at.least", 1);
   });
 
   it("uspesno kreiranje prikazuje poruku", () => {
     cy.intercept("POST", "**/api/employees", {
       statusCode: 201,
-      body: { valid: true },
+      body: { id: 99 },
     }).as("createEmployee");
 
-    cy.get('input[name="ime"]').type("Marko");
-    cy.get('input[name="prezime"]').type("Marković");
-    cy.get('input[name="pol"]').type("Muški");
-    cy.get('input[name="username"]').type("markom");
-    cy.get('input[name="adresa"]').type("Beograd, Srbija");
-    cy.get('input[name="lozinka"]').type("Test1234!");
-    cy.get('input[name="potvrda"]').type("Test1234!");
-    cy.get('input[name="telefon"]').type("0641234567");
-    cy.get('input[name="datum"]').type("15.05.1990");
-    cy.get('input[name="email"]').type("marko@primer.rs");
-    cy.get('input[name="pozicija"]').type("Analitičar");
+    popuniFormu({
+      ime: "Marko",
+      prezime: "Markovic",
+      pol: "M",
+      username: "markom",
+      adresa: "Beograd, Srbija",
+      telefon: "+381641234567",
+      datum: "15.05.1990",
+      email: "marko@primer.rs",
+      pozicija: "Analiticar",
+      department: "Rizik",
+    });
+
     cy.get('button[type="submit"]').click();
-    cy.get(".success-msg").should("contain", "uspešno kreiran");
+
+    cy.wait("@createEmployee").its("request.body").should((body) => {
+      expect(body.first_name).to.eq("Marko");
+      expect(body.last_name).to.eq("Markovic");
+      expect(body.gender).to.eq("M");
+      expect(body.department).to.eq("Rizik");
+    });
+    cy.get(".success-msg").should("contain", "Zaposleni uspešno kreiran");
   });
 
   it("prikazuje sekciju sa permisijama", () => {
@@ -56,7 +63,7 @@ describe("Kreiranje zaposlenog", () => {
 
   it("permisije sadrze sve ocekivane opcije", () => {
     cy.get(".permission-text").then(($labels) => {
-      const texts = [...$labels].map((el) => el.textContent);
+      const texts = [...$labels].map((el) => el.textContent.trim());
       expect(texts).to.include("Admin");
       expect(texts).to.include("Trgovanje akcijama");
       expect(texts).to.include("Pregled akcija");
@@ -75,34 +82,41 @@ describe("Kreiranje zaposlenog", () => {
   it("uspesno kreiranje sa permisijama salje update poziv", () => {
     cy.intercept("POST", "**/api/employees", {
       statusCode: 201,
-      body: { valid: true },
+      body: { id: 99 },
     }).as("createEmployee");
 
-    cy.intercept("GET", "**/api/employees?email=marko@primer.rs", {
-      statusCode: 200,
-      body: [{ id: 99, email: "marko@primer.rs" }],
+    cy.intercept("GET", "**/api/employees*", (req) => {
+      if (req.query.email === "marko@primer.rs") {
+        req.reply({
+          statusCode: 200,
+          body: [{ id: 99, email: "marko@primer.rs" }],
+        });
+        return;
+      }
+
+      req.reply({ statusCode: 200, body: [] });
     }).as("findEmployee");
 
-    cy.intercept("PUT", "**/api/employees/99", {
+    cy.intercept("PATCH", "**/api/employees/99", {
       statusCode: 200,
       body: { id: 99 },
     }).as("updatePermissions");
 
-    cy.get('input[name="ime"]').type("Marko");
-    cy.get('input[name="prezime"]').type("Marković");
-    cy.get('input[name="pol"]').type("Muški");
-    cy.get('input[name="username"]').type("markom");
-    cy.get('input[name="adresa"]').type("Beograd, Srbija");
-    cy.get('input[name="lozinka"]').type("Test1234!");
-    cy.get('input[name="potvrda"]').type("Test1234!");
-    cy.get('input[name="telefon"]').type("0641234567");
-    cy.get('input[name="datum"]').type("15.05.1990");
-    cy.get('input[name="email"]').type("marko@primer.rs");
-    cy.get('input[name="pozicija"]').type("Analitičar");
+    popuniFormu({
+      ime: "Marko",
+      prezime: "Markovic",
+      pol: "M",
+      username: "markom",
+      adresa: "Beograd, Srbija",
+      telefon: "+381641234567",
+      datum: "15.05.1990",
+      email: "marko@primer.rs",
+      pozicija: "Analiticar",
+      department: "Rizik",
+    });
 
     cy.get(".permission-checkbox").eq(0).click();
     cy.get(".permission-checkbox").eq(2).click();
-
     cy.get('button[type="submit"]').click();
 
     cy.wait("@createEmployee");
@@ -110,7 +124,7 @@ describe("Kreiranje zaposlenog", () => {
     cy.wait("@updatePermissions").its("request.body").should((body) => {
       expect(body.permissions).to.deep.equal(["admin", "view_stocks"]);
     });
-    cy.get(".success-msg").should("contain", "uspešno kreiran");
+    cy.get(".success-msg").should("contain", "Zaposleni uspešno kreiran");
   });
 
   it("kreiranje bez permisija ne salje update poziv", () => {
@@ -119,60 +133,82 @@ describe("Kreiranje zaposlenog", () => {
       body: { id: 100 },
     }).as("createEmployee");
 
-    cy.intercept("PUT", "**/api/employees/**").as("updateEmployee");
+    cy.intercept("PATCH", "**/api/employees/**").as("updateEmployee");
 
-    cy.get('input[name="ime"]').type("Ana");
-    cy.get('input[name="prezime"]').type("Anić");
-    cy.get('input[name="pol"]').type("Ženski");
-    cy.get('input[name="username"]').type("anaa");
-    cy.get('input[name="adresa"]').type("Novi Sad");
-    cy.get('input[name="lozinka"]').type("Test1234!");
-    cy.get('input[name="potvrda"]').type("Test1234!");
-    cy.get('input[name="telefon"]').type("0649876543");
-    cy.get('input[name="datum"]').type("20.03.1995");
-    cy.get('input[name="email"]').type("ana@primer.rs");
-    cy.get('input[name="pozicija"]').type("Menadžer");
+    popuniFormu({
+      ime: "Ana",
+      prezime: "Anic",
+      pol: "Z",
+      username: "anaa",
+      adresa: "Novi Sad",
+      telefon: "+381649876543",
+      datum: "20.03.1995",
+      email: "ana@primer.rs",
+      pozicija: "Menadzer",
+      department: "Operativa",
+    });
 
     cy.get('button[type="submit"]').click();
     cy.wait("@createEmployee");
-    cy.get(".success-msg").should("contain", "uspešno kreiran");
-
+    cy.get(".success-msg").should("contain", "Zaposleni uspešno kreiran");
     cy.get("@updateEmployee.all").should("have.length", 0);
   });
 
   it("prikazuje upozorenje kad update permisija padne", () => {
     cy.intercept("POST", "**/api/employees", {
       statusCode: 201,
-      body: { valid: true },
+      body: { id: 101 },
     }).as("createEmployee");
 
-    cy.intercept("GET", "**/api/employees?email=petar@primer.rs", {
-      statusCode: 200,
-      body: [{ id: 101, email: "petar@primer.rs" }],
+    cy.intercept("GET", "**/api/employees*", (req) => {
+      if (req.query.email === "petar@primer.rs") {
+        req.reply({
+          statusCode: 200,
+          body: [{ id: 101, email: "petar@primer.rs" }],
+        });
+        return;
+      }
+
+      req.reply({ statusCode: 200, body: [] });
     }).as("findEmployee");
 
-    cy.intercept("PUT", "**/api/employees/101", {
+    cy.intercept("PATCH", "**/api/employees/101", {
       statusCode: 500,
       body: { error: "Internal Server Error" },
     }).as("updatePermissions");
 
-    cy.get('input[name="ime"]').type("Petar");
-    cy.get('input[name="prezime"]').type("Petrović");
-    cy.get('input[name="pol"]').type("Muški");
-    cy.get('input[name="username"]').type("petarp");
-    cy.get('input[name="adresa"]').type("Niš");
-    cy.get('input[name="lozinka"]').type("Test1234!");
-    cy.get('input[name="potvrda"]').type("Test1234!");
-    cy.get('input[name="telefon"]').type("0651234567");
-    cy.get('input[name="datum"]').type("10.10.1988");
-    cy.get('input[name="email"]').type("petar@primer.rs");
-    cy.get('input[name="pozicija"]').type("Programer");
+    popuniFormu({
+      ime: "Petar",
+      prezime: "Petrovic",
+      pol: "M",
+      username: "petarp",
+      adresa: "Nis",
+      telefon: "+381651234567",
+      datum: "10.10.1988",
+      email: "petar@primer.rs",
+      pozicija: "Programer",
+      department: "IT",
+    });
 
     cy.get(".permission-checkbox").eq(1).click();
-
     cy.get('button[type="submit"]').click();
+
     cy.wait("@createEmployee");
+    cy.wait("@findEmployee");
     cy.wait("@updatePermissions");
     cy.get(".success-msg").should("contain", "dodela permisija nije uspela");
   });
 });
+
+function popuniFormu(data) {
+  cy.get('input[name="ime"]').type(data.ime);
+  cy.get('input[name="prezime"]').type(data.prezime);
+  cy.get('select[name="pol"]').select(data.pol);
+  cy.get('input[name="username"]').type(data.username);
+  cy.get('input[name="adresa"]').type(data.adresa);
+  cy.get('input[name="telefon"]').type(data.telefon);
+  cy.get('input[name="datum"]').type(data.datum);
+  cy.get('input[name="email"]').type(data.email);
+  cy.get('input[name="pozicija"]').type(data.pozicija);
+  cy.get('input[name="department"]').type(data.department);
+}
