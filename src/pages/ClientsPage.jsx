@@ -23,6 +23,7 @@ export default function ClientsPage() {
 
     useEffect(() => {
         let cancelled = false;
+
         async function loadClients() {
             try {
                 const data = await getClients();
@@ -33,12 +34,17 @@ export default function ClientsPage() {
                 if (!cancelled) setLoading(false);
             }
         }
+
         loadClients();
-        return () => { cancelled = true; };
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const filteredClients = useMemo(() => {
         const term = searchTerm.trim().toLowerCase();
+
         return clients.filter((client) => {
             const matchesSearch =
                 !term ||
@@ -46,7 +52,9 @@ export default function ClientsPage() {
                 (client.email || "").toLowerCase().includes(term) ||
                 (client.phone || "").toLowerCase().includes(term) ||
                 String(client.id || "").includes(term);
+
             const matchesGender = !filterGender || client.gender === filterGender;
+
             return matchesSearch && matchesGender;
         });
     }, [clients, searchTerm, filterGender]);
@@ -83,13 +91,34 @@ export default function ClientsPage() {
         <div className="page-bg">
             <img src="/bank-logo.png" alt="logo" className="bank-logo" />
             <Sidebar />
+
             <div className="content-wrapper">
                 <div className="employee-card client-card-shell">
                     <div className="employee-topbar">
                         <div className="employee-title-block">
                             <p className="employee-eyebrow">UPRAVLJANJE KLIJENTIMA</p>
                             <h1>Klijenti</h1>
-                            <p className="employee-subtitle">Pregled, pretraga i otvaranje detalja klijenata banke.</p>
+                            <p className="employee-subtitle">
+                                Pregled, pretraga i otvaranje detalja klijenata banke.
+                            </p>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                            <button
+                                type="button"
+                                className="create-btn create-btn-secondary"
+                                onClick={() => navigate("/employees")}
+                            >
+                                Nazad
+                            </button>
+
+                            <button
+                                type="button"
+                                className="client-create-btn"
+                                onClick={() => navigate("/clients/create")}
+                            >
+                                + Kreiraj klijenta
+                            </button>
                         </div>
                     </div>
 
@@ -105,6 +134,7 @@ export default function ClientsPage() {
                                 />
                             </div>
                         </div>
+
                         <div className="toolbar-actions">
                             <select
                                 className="position-filter"
@@ -115,7 +145,14 @@ export default function ClientsPage() {
                                 <option value="M">Muški</option>
                                 <option value="F">Ženski</option>
                             </select>
-                            <button className="reset-btn" onClick={() => { setSearchTerm(""); setFilterGender(""); }}>
+
+                            <button
+                                className="reset-btn"
+                                onClick={() => {
+                                    setSearchTerm("");
+                                    setFilterGender("");
+                                }}
+                            >
                                 Reset filtera
                             </button>
                         </div>
@@ -146,12 +183,22 @@ export default function ClientsPage() {
                                 </tr>
                             ) : (
                                 paginatedClients.map((client) => (
-                                    <tr key={client.id} className="client-row" onClick={() => navigate(`/clients/${client.id}`)}>
+                                    <tr
+                                        key={client.id}
+                                        className="client-row"
+                                        onClick={() => navigate(`/clients/${client.id}`)}
+                                    >
                                         <td>{client.id}</td>
                                         <td>{client.firstName} {client.lastName}</td>
                                         <td>{client.email || "—"}</td>
                                         <td>{client.phone || "—"}</td>
-                                        <td>{client.gender === "M" ? "Muški" : client.gender === "F" ? "Ženski" : "—"}</td>
+                                        <td>
+                                            {client.gender === "M"
+                                                ? "Muški"
+                                                : client.gender === "F"
+                                                    ? "Ženski"
+                                                    : "—"}
+                                        </td>
                                         <td>{formatDate(client.dateOfBirth)}</td>
                                     </tr>
                                 ))
@@ -161,11 +208,14 @@ export default function ClientsPage() {
                     </div>
 
                     <div className="pagination">
-                        <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>
+                        <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
                             Prethodna
                         </button>
                         <span>Strana {currentPage} / {totalPages || 1}</span>
-                        <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)}>
+                        <button
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            onClick={() => setCurrentPage((p) => p + 1)}
+                        >
                             Sledeća
                         </button>
                     </div>

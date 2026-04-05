@@ -1,166 +1,187 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import {getPermissions, logout} from "../services/AuthService";
+import { getPermissions, logout } from "../services/AuthService";
 import "./Sidebar.css";
 
 export default function MenuDropdown() {
-  const [open, setOpen] = useState(false);
-  const panelRef = useRef(null);
-  const navigate = useNavigate();
-  const role = localStorage.getItem("userRole");
+    const [open, setOpen] = useState(false);
+    const panelRef = useRef(null);
+    const navigate = useNavigate();
+    const role = localStorage.getItem("userRole");
 
-  // Zatvaranje klikom van panela
-  useEffect(() => {
-    if (!open) return;
-    function handleClickOutside(e) {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
+    useEffect(() => {
+        if (!open) return;
+
+        function handleClickOutside(e) {
+            if (panelRef.current && !panelRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [open]);
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [open]);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("userRole");
+        }
+
+        navigate("/login");
         setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
+    };
 
-  // Onemogućavanje scroll-a kada je meni otvoren
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
+    const getMenuSections = () => {
+        const sections = [];
+        const permissions = getPermissions();
+        const isAdmin = permissions.includes("admin");
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userRole");
-    }
-    navigate("/login");
-    setOpen(false);
-  };
+        if (role === "client") {
+            sections.push(
+                { title: "Dashboard", items: [{ label: "Client Dashboard", path: "/dashboard" }] },
+                { title: "Računi", items: [{ label: "Moji računi", path: "/accounts" }] },
+                {
+                    title: "Plaćanja",
+                    items: [
+                        { label: "Novo plaćanje", path: "/payment" },
+                        { label: "Novi transfer", path: "/transfer" },
+                        { label: "Pregled transakcija", path: "/payments" },
+                        { label: "Primaoci", path: "/recipients" },
+                    ],
+                },
+                { title: "Menjačnica", items: [{ label: "Kursna lista / konverzija", path: "/exchange" }] },
+                {
+                    title: "Kartice",
+                    items: [
+                        { label: "Moje kartice", path: "/cards" },
+                        { label: "Zahtev za novu karticu", path: "/cards?tab=create" },
+                    ],
+                },
+                {
+                    title: "Krediti",
+                    items: [
+                        { label: "Moji krediti", path: "/loans" },
+                        { label: "Zahtev za kredit", path: "/loan-request" },
+                    ],
+                }
+            );
+        }
 
-  // Stavke menija
-  const getMenuSections = () => {
-    const sections = [];
-    const permissions = getPermissions();
-    const isAdmin = permissions.includes("admin");
+        if (role === "employee") {
+            sections.push(
+                {
+                    title: "Računi",
+                    items: [
+                        { label: "Svi računi", path: "/admin/accounts" },
+                        { label: "Kreiraj račun", path: "/accounts/create" },
+                    ],
+                },
+                { title: "Kartice", items: [{ label: "Upravljanje karticama", path: "/cards" }] },
+                {
+                    title: "Krediti",
+                    items: [
+                        { label: "Zahtevi za kredit", path: "/employee-loans" },
+                        { label: "Svi krediti", path: "/employee-loans-list" },
+                    ],
+                }
+            );
 
-    if (role === "client") {
-      sections.push(
-          { title: "Dashboard", items: [{ label: "Client Dashboard", path: "/dashboard" }] },
-          { title: "Računi", items: [{ label: "Moji računi", path: "/accounts" }] },
-          { title: "Plaćanja", items: [
-              { label: "Novo plaćanje", path: "/payment" },
-              { label: "Novi transfer", path: "/transfer" },
-              { label: "Pregled transakcija", path: "/payments" },
-              { label: "Primaoci", path: "/recipients" },
-            ]},
-          { title: "Menjačnica", items: [{ label: "Kursna lista / konverzija", path: "/exchange" }] },
-          { title: "Kartice", items: [
-              { label: "Moje kartice", path: "/cards" },
-              { label: "Zahtev za novu karticu", path: "/cards?tab=create" },
-            ]},
-          { title: "Krediti", items: [
-              { label: "Moji krediti", path: "/loans" },
-              { label: "Zahtev za kredit", path: "/loan-request" },
-            ]},
-      );
-    }
+            if (isAdmin) {
+                sections.push(
+                    {
+                        title: "Zaposleni",
+                        items: [
+                            { label: "Lista zaposlenih", path: "/employees" },
+                            { label: "Dodaj zaposlenog", path: "/employees/create" },
+                        ],
+                    },
+                    {
+                        title: "Klijenti",
+                        items: [
+                            { label: "Lista klijenata", path: "/clients" },
+                            { label: "Kreiraj klijenta", path: "/clients/create" },
+                        ],
+                    }
+                );
+            }
+        }
 
-    if (role === "employee") {
-      sections.push(
-          { title: "Računi", items: [
-              { label: "Svi računi", path: "/admin/accounts" },
-              { label: "Kreiraj račun", path: "/accounts/create" },
-            ]},
-          { title: "Kartice", items: [{ label: "Upravljanje karticama", path: "/cards" }] },
-          { title: "Krediti", items: [
-              { label: "Zahtevi za kredit", path: "/employee-loans" },
-              { label: "Svi krediti", path: "/employee-loans-list" },
-            ]},
-      );
+        return sections;
+    };
 
-      // Samo admin vidi upravljanje zaposlenima i klijentima
-      if (isAdmin) {
-        sections.push(
-            { title: "Zaposleni", items: [
-                { label: "Lista zaposlenih", path: "/employees" },
-                { label: "Dodaj zaposlenog", path: "/employees/create" },
-              ]},
-            { title: "Klijenti", items: [
-                { label: "Lista klijenata", path: "/clients" },
-              ]},
-        );
-      }
-    }
+    const menuSections = getMenuSections();
 
-    return sections;
-  };
-
-  const menuSections = getMenuSections();
-
-
-  return createPortal(
-      <>
-        {/* Burger dugme */}
-        <button
-            className="menu-icon-btn"
-            onClick={() => setOpen(true)}
-            aria-label="Meni"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-
-        {/* Overlay + Side Panel */}
-        <div className={`sidepanel-overlay${open ? " open" : ""}`} onClick={() => setOpen(false)}>
-          <nav
-              ref={panelRef}
-              className={`sidepanel${open ? " open" : ""}`}
-              onClick={(e) => e.stopPropagation()}
-          >
-            {/* Dugme za zatvaranje */}
-            <button className="sidepanel-close" onClick={() => setOpen(false)} aria-label="Zatvori">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+    return createPortal(
+        <>
+            <button
+                className="menu-icon-btn"
+                onClick={() => setOpen(true)}
+                aria-label="Meni"
+            >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
             </button>
 
-            {/* Sadržaj menija */}
-            <div className="sidepanel-content">
-              {menuSections.map((section, i) => (
-                  <div key={i}>
-                    <h4 style={{ color: "#94a3b8", margin: "12px 0 6px 0" }}>{section.title}</h4>
-                    {section.items.map((item, j) => (
-                        <button
-                            key={j}
-                            className="sidepanel-item"
-                            onClick={() => { navigate(item.path); setOpen(false); }}
-                        >
-                          {item.label}
-                        </button>
-                    ))}
-                  </div>
-              ))}
+            <div className={`sidepanel-overlay${open ? " open" : ""}`} onClick={() => setOpen(false)}>
+                <nav
+                    ref={panelRef}
+                    className={`sidepanel${open ? " open" : ""}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button className="sidepanel-close" onClick={() => setOpen(false)} aria-label="Zatvori">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
 
-              {/* Logout */}
-              <button className="sidepanel-item sidepanel-logout" onClick={handleLogout}>
-                Odjavi se
-              </button>
+                    <div className="sidepanel-content">
+                        {menuSections.map((section, i) => (
+                            <div key={i}>
+                                <h4 style={{ color: "#94a3b8", margin: "12px 0 6px 0" }}>{section.title}</h4>
+                                {section.items.map((item, j) => (
+                                    <button
+                                        key={j}
+                                        className="sidepanel-item"
+                                        onClick={() => {
+                                            navigate(item.path);
+                                            setOpen(false);
+                                        }}
+                                    >
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </div>
+                        ))}
+
+                        <button className="sidepanel-item sidepanel-logout" onClick={handleLogout}>
+                            Odjavi se
+                        </button>
+                    </div>
+                </nav>
             </div>
-          </nav>
-        </div>
-      </>,
-      document.body
-  );
+        </>,
+        document.body
+    );
 }
