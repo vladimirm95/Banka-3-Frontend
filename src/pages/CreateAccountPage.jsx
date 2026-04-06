@@ -149,6 +149,7 @@ export default function CreateAccountPage() {
     const [companySubtype, setCompanySubtype] = useState("");
     const [success, setSuccess] = useState(false);
     const [initialBalance, setInitialBalance] = useState("");
+    const [accountName, setAccountName] = useState("");
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
     const [clientForm, setClientForm] = useState(EMPTY_CLIENT);
     const [clientFormErrors, setClientFormErrors] = useState({});
@@ -291,6 +292,7 @@ export default function CreateAccountPage() {
             }
             await createAccount({
                 client_id: Number(userId),
+                name: accountName.trim() || undefined,
                 account_type: accountType,
                 subtype: ownerType === "BUSINESS" ? companySubtype : subtype,
                 currency,
@@ -346,6 +348,7 @@ export default function CreateAccountPage() {
                                     setSubtype("");
                                     setCompany(EMPTY_COMPANY);
                                     setInitialBalance("");
+                                    setAccountName("");
                                     setCreateCard(false);
                                     setDailyLimit("");
                                     setMonthlyLimit("");
@@ -621,6 +624,20 @@ export default function CreateAccountPage() {
                             </div>
                         </div>
                     )}
+                    <div className="ca-section">
+                        <p className="ca-section-label">Naziv računa</p>
+                        <div className="ca-field">
+                            <label className="ca-field-label">Naziv (opciono)</label>
+                            <input
+                                className="ca-input"
+                                type="text"
+                                value={accountName}
+                                onChange={(e) => setAccountName(e.target.value)}
+                                placeholder="npr. Moj tekući račun"
+                            />
+                        </div>
+                    </div>
+
                     <div className="ca-section">
                         <p className="ca-section-label">Početno stanje</p>
                         <div className="ca-field">
