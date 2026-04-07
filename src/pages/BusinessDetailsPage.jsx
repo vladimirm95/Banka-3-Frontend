@@ -11,20 +11,19 @@ const BusinessAccountDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+ useEffect(() => {
+    const fetchAccount = async () => {
+      try {
+        const data = await getAccountDetails(id);
+        setAccount(data);
+      } catch {
+        setError("Greška pri učitavanju podataka o računu.");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchAccount();
   }, [id]);
-
-  const fetchAccount = async () => {
-    try {
-      const data = await getAccountDetails(id);
-      setAccount(data);
-    } catch {
-      setError("Greška pri učitavanju podataka o računu.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatMoney = (amount) =>
       new Intl.NumberFormat("sr-RS").format(amount);

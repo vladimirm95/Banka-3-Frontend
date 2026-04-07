@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import "./CreateEmployeePage.css";
 import "./EmployeesPage.css";
 import { getEmployeeById, updateEmployee } from "../services/EmployeeService";
@@ -7,21 +7,17 @@ import Sidebar from "../components/Sidebar.jsx";
 
 function validate(form) {
   const errors = {};
-
   if (!form.ime.trim()) errors.ime = "Ime je obavezno";
   if (!form.prezime.trim()) errors.prezime = "Prezime je obavezno.";
   if (!form.pol.trim()) errors.pol = "Pol je obavezan.";
-
   if (!form.telefon.trim()) {
     errors.telefon = "Broj telefona je obavezan.";
   } else if (!/^\+?[\d\s\-()]{7,15}$/.test(form.telefon)) {
     errors.telefon = "Unesite ispravan broj telefona.";
   }
-
   if (!form.adresa.trim()) errors.adresa = "Adresa je obavezna.";
   if (!form.pozicija.trim()) errors.pozicija = "Pozicija je obavezna.";
   if (!form.departman.trim()) errors.departman = "Departman je obavezan.";
-
   return errors;
 }
 
@@ -29,17 +25,10 @@ const normalize = (p) => p.toLowerCase().replace(/ /g, "_");
 
 export default function EditEmployeePage() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    ime: '',
-    prezime: "",
-    pol: "",
-    telefon: "",
-    adresa: "",
-    pozicija: "",
-    departman: "",
-    aktivan: true,
+    ime: '', prezime: "", pol: "", telefon: "",
+    adresa: "", pozicija: "", departman: "", aktivan: true,
   });
 
   const [allPermissions] = useState([
@@ -54,8 +43,6 @@ export default function EditEmployeePage() {
   ]);
 
   const [selectedPermissions, setSelectedPermissions] = useState([]);
-
-  const [originalFirstName, setOriginalFirstName] = useState("");
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,8 +51,6 @@ export default function EditEmployeePage() {
   useEffect(() => {
     getEmployeeById(Number(id))
       .then((employee) => {
-        setOriginalFirstName(employee.firstName ?? "");
-
         setForm({
           ime: employee.firstName ?? "",
           prezime: employee.lastName ?? "",
@@ -92,11 +77,11 @@ export default function EditEmployeePage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   }
 
   const togglePermission = (perm) => {
     const normalized = normalize(perm);
-
     setSelectedPermissions(prev => {
       const clean = prev.map(normalize);
 
@@ -110,18 +95,13 @@ export default function EditEmployeePage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     const errs = validate(form);
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
-
     setLoading(true);
-
     try {
-      console.log("SALJEM:", selectedPermissions);
-
       await updateEmployee(Number(id), {
         firstName: form.ime,
         lastName: form.prezime,
@@ -133,12 +113,9 @@ export default function EditEmployeePage() {
         active: form.aktivan,
         permissions: selectedPermissions.map(p => p.toUpperCase())
       });
-
       setSuccessMsg("Profil uspešno izmenjen.");
     } catch (err) {
-      setErrors({
-        submit: err.response?.data?.error || "Greška pri izmeni profila.",
-      });
+      setErrors({ submit: err.response?.data?.error || "Greška pri izmeni profila." });
     } finally {
       setLoading(false);
     }
@@ -162,12 +139,12 @@ export default function EditEmployeePage() {
   return (
     <div className="page-bg">
       <Sidebar />
-
       <div className="create-page">
         <div className="create-form-card">
+          {successMsg && <div className="success-msg">{successMsg}</div>}
+          {errors.submit && <div className="error-msg">{errors.submit}</div>}
 
           <form onSubmit={handleSubmit}>
-
             <div className="form-row-three">
               <div className="form-group">
                 <label>Prezime</label>
@@ -214,7 +191,6 @@ export default function EditEmployeePage() {
 
             <div className="permissions-section">
               <span className="permissions-label">Permisije</span>
-
               <div className="permissions-grid">
                 {allPermissions.map((perm) => (
                   <label key={perm} className="permission-checkbox">
@@ -224,9 +200,7 @@ export default function EditEmployeePage() {
                       onChange={() => togglePermission(perm)}
                     />
                     <span className="checkmark"></span>
-                    <span className="permission-text">
-                      {formatLabel(perm)}
-                    </span>
+                    <span className="permission-text">{formatLabel(perm)}</span>
                   </label>
                 ))}
               </div>
@@ -247,7 +221,6 @@ export default function EditEmployeePage() {
             </div>
 
           </form>
-
         </div>
       </div>
     </div>
