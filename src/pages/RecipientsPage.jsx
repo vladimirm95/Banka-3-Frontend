@@ -74,6 +74,11 @@ export default function RecipientsPage() {
     });
   }, [recipients, searchTerm]);
 
+  // --- FUNKCIJA ZA PRELAZAK NA PLAĆANJE ---
+  function handlePayToRecipient(recipient) {
+    navigate("/payment", { state: { recipient: recipient } });
+  }
+
   function openCreateModal() {
     setEditingRecipient(null);
     setForm(EMPTY_FORM);
@@ -134,7 +139,6 @@ export default function RecipientsPage() {
 
       if (editingRecipient?.id) {
         const updated = await updateRecipient(editingRecipient.id, payload);
-
         setRecipients((prev) =>
             prev.map((recipient) =>
                 recipient.id === editingRecipient.id
@@ -149,7 +153,6 @@ export default function RecipientsPage() {
         );
       } else {
         const created = await createRecipient(payload);
-
         const newRecipient =
             created && typeof created === "object"
                 ? created
@@ -157,7 +160,6 @@ export default function RecipientsPage() {
                   id: Date.now(),
                   ...payload,
                 };
-
         setRecipients((prev) => [newRecipient, ...prev]);
       }
 
@@ -291,7 +293,12 @@ export default function RecipientsPage() {
                   </thead>
                   <tbody>
                   {filtered.map((r, i) => (
-                      <tr key={r.id || `${r.account_number}-${i}`} className="rp-row">
+                      <tr 
+                          key={r.id || `${r.account_number}-${i}`} 
+                          className="rp-row"
+                          onClick={() => handlePayToRecipient(r)} // Klik na red vodi na plaćanje
+                          style={{ cursor: "pointer" }}
+                      >
                         <td className="rp-td-index">{i + 1}</td>
 
                         <td className="rp-td-name">
@@ -301,16 +308,23 @@ export default function RecipientsPage() {
                         <td className="rp-td-account">{r?.account_number || "—"}</td>
 
                         <td className="rp-td-actions">
+                          {/* Sprecavamo klik na dugme da okine klik na red (e.stopPropagation()) */}
                           <button
                               className="rp-action-btn rp-action-btn--edit"
-                              onClick={() => openEditModal(r)}
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(r);
+                              }}
                           >
                             Izmeni
                           </button>
 
                           <button
                               className="rp-action-btn rp-action-btn--delete"
-                              onClick={() => handleDelete(r)}
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(r);
+                              }}
                               disabled={isDeleteLoading}
                           >
                             Obriši
@@ -324,6 +338,7 @@ export default function RecipientsPage() {
           </div>
         </div>
 
+        {/* Modal ostaje isti... */}
         {isModalOpen && (
             <div className="rp-modal-overlay" onClick={closeModal}>
               <div className="rp-modal" onClick={(e) => e.stopPropagation()}>
