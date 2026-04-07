@@ -3,33 +3,19 @@ import api from "./api.js";
 
 export async function getExchangeRates() {
   const response = await api.get("/exchange-rates");
-
-  const ratesMap = {};
-  if (response.data) {
-    response.data.forEach((r) => {
-      ratesMap[r.currencyCode] = r.middleRate;
-    });
-  }
-
-  return ratesMap;
+  return response.data || [];
 }
 
-// 2. Izvršavanje konverzije (Realni API poziv)
-export async function performExchange(from, to, amount) {
-  // Backend: POST /api/exchange/convert
-  const response = await api.post("/exchange/convert", {
-    from_currency: from,
-    to_currency: to,
+// 2. Izvršavanje konverzije putem internog transfera
+export async function performExchange(fromAccount, toAccount, amount, description = "") {
+  const response = await api.post("/transactions/transfer", {
+    from_account: fromAccount,
+    to_account: toAccount,
     amount: parseFloat(amount),
+    description,
   });
 
-  return {
-    originalAmount: amount,
-    convertedAmount: response.data.converted_amount,
-    exchangeRate: response.data.exchange_rate,
-    fromCurrency: from,
-    toCurrency: to,
-  };
+  return response.data;
 }
 
 // 4. Promena statusa berze (OVO JE FALILO - trenutno MOCK)
