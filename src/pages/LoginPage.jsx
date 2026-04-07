@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { login } from "../services/AuthService";
+import useFailedAttempts, { BLOCKED_MESSAGE } from "../utils/useFailedAttempts";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -9,9 +10,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const { isBlocked, increment, reset } = useFailedAttempts("login");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isBlocked) {
+      setMessage(BLOCKED_MESSAGE);
+      return;
+    }
 
     if (!email || !password) {
       setMessage("Unesite email i lozinku");
@@ -24,6 +31,7 @@ export default function LoginPage() {
     try {
       // 1. Prvo radimo login da dobijemo tokene
       const data = await login(email, password);
+      reset();
 
       // 2. OBAVEZNO upisujemo tokene odmah, jer sledeći API pozivi 
       // u ClientService/EmployeeService koriste ove tokene iz localStorage
@@ -51,6 +59,7 @@ export default function LoginPage() {
       console.error("Login error:", err);
       if (err.response) {
         if (err.response.status === 401) {
+          increment();
           setMessage("Pogrešan email ili lozinka");
         } else {
           setMessage("Greška na serveru pri prijavi.");
@@ -113,11 +122,15 @@ export default function LoginPage() {
             Zaboravili ste lozinku?
           </p>
 
-          <button type="submit" className="login-button" disabled={loading}>
+          <button type="submit" className="login-button" disabled={loading || isBlocked}>
             {loading ? "Prijavljivanje..." : "Prijavi se"}
           </button>
 
-          {message && <p className="message">{message}</p>}
+          {isBlocked ? (
+            <p className="message login-blocked">{BLOCKED_MESSAGE}</p>
+          ) : (
+            message && <p className="message">{message}</p>
+          )}
         </form>
 
         <p className="login-footer">Banka 2026 • Računarski fakultet</p>

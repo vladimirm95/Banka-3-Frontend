@@ -4,6 +4,7 @@ import { getAccounts } from "../services/AccountService";
 import { createTransfer } from "../services/PaymentService";
 import Sidebar from "../components/Sidebar.jsx";
 import TotpModal from "../components/TotpModal.jsx";
+import useFailedAttempts, { BLOCKED_MESSAGE, MAX_FAILED_ATTEMPTS } from "../utils/useFailedAttempts";
 import "./PaymentPage.css";
 
 export default function TransferPage() {
@@ -20,6 +21,8 @@ export default function TransferPage() {
   const [showTotp, setShowTotp] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [totpError, setTotpError] = useState("");
+
+  const { attempts, isBlocked, increment, reset } = useFailedAttempts("totp");
 
   useEffect(() => {
     getAccounts().then(setAccounts).catch(() => setAccounts([]));
@@ -40,6 +43,12 @@ export default function TransferPage() {
     e.preventDefault();
     setSubmitError("");
     setSuccessMsg("");
+
+    if (isBlocked) {
+      setShowTotp(false);
+      setSubmitError(BLOCKED_MESSAGE);
+      return;
+    }
 
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -67,13 +76,21 @@ export default function TransferPage() {
       setFromAccount("");
       setToAccount("");
       setAmount("");
+      reset();
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        "Greška pri verifikaciji.";
-      setTotpError(msg);
+      increment();
+      const nextAttempts = attempts + 1;
+      if (nextAttempts >= MAX_FAILED_ATTEMPTS) {
+        setShowTotp(false);
+        setSubmitError(BLOCKED_MESSAGE);
+      } else {
+        const msg =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Greška pri verifikaciji.";
+        setTotpError(msg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -199,12 +216,15 @@ export default function TransferPage() {
 
           {successMsg && <p className="pay-success">{successMsg}</p>}
           {submitError && <p className="pay-error pay-error--submit">{submitError}</p>}
+          {isBlocked && !submitError && (
+            <p className="pay-error pay-error--submit">{BLOCKED_MESSAGE}</p>
+          )}
 
           <div className="pay-actions">
             <button type="button" className="pay-btn-back" onClick={() => navigate(-1)}>
               Otkaži
             </button>
-            <button type="submit" className="pay-btn-submit" disabled={submitting}>
+            <button type="submit" className="pay-btn-submit" disabled={submitting || isBlocked}>
               {submitting ? "Slanje..." : "Izvrši prenos"}
             </button>
           </div>

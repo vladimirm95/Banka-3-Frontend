@@ -5,6 +5,7 @@ import { transferFunds } from "../services/TransactionService";
 import { getRecipients, createRecipient } from "../services/PaymentService";
 import TotpModal from "../components/TotpModal";
 import Sidebar from "../components/Sidebar";
+import useFailedAttempts, { BLOCKED_MESSAGE, MAX_FAILED_ATTEMPTS } from "../utils/useFailedAttempts";
 import "./PaymentPage.css";
 
 const EMPTY_FORM = {
@@ -31,6 +32,8 @@ export default function PaymentPage() {
 
     const [accounts, setAccounts] = useState([]);
     const [recipients, setRecipients] = useState([]);
+
+    const { attempts, isBlocked, increment, reset } = useFailedAttempts("totp");
 
     useEffect(() => {
         async function fetchData() {
@@ -112,26 +115,38 @@ export default function PaymentPage() {
 
     async function handleSubmit(e) {
         e.preventDefault();
+        if (isBlocked) {
+            setShowTotp(false);
+            setTotpError(BLOCKED_MESSAGE);
+            return;
+        }
         const errs = validate();
         if (Object.keys(errs).length > 0) {
             setErrors(errs);
             return;
         }
-        setTotpError(""); 
+        setTotpError("");
         setShowTotp(true);
     }
 
     async function handleTotpConfirm(totpCode) {
         setSubmitting(true);
-        setTotpError(""); 
+        setTotpError("");
         try {
             await transferFunds({ ...form, amount: Number(form.amount) }, totpCode);
             setShowTotp(false);
             setSuccessMsg("Plaćanje je uspešno izvršeno!");
             setForm(EMPTY_FORM);
+            reset();
         } catch (err) {
-            // <-- DODATO: Prikazuje se greška u samom modalu umesto alerta!
-            setTotpError(err.response?.data?.message || err.response?.data?.error || "Neispravan TOTP kod ili greška na serveru.");
+            increment();
+            const nextAttempts = attempts + 1;
+            if (nextAttempts >= MAX_FAILED_ATTEMPTS) {
+                setShowTotp(false);
+                setTotpError(BLOCKED_MESSAGE);
+            } else {
+                setTotpError(err.response?.data?.message || err.response?.data?.error || "Neispravan TOTP kod ili greška na serveru.");
+            }
         } finally {
             setSubmitting(false);
         }
@@ -284,9 +299,13 @@ export default function PaymentPage() {
                             </div>
                         </div>
 
+                        {isBlocked && (
+                            <p className="pay-error-text pay-error--submit">{BLOCKED_MESSAGE}</p>
+                        )}
+
                         <div className="pay-actions">
                             <button type="button" className="pay-btn-cancel" onClick={() => navigate(-1)}>Otkaži</button>
-                            <button type="submit" className="pay-btn-submit" disabled={submitting}>
+                            <button type="submit" className="pay-btn-submit" disabled={submitting || isBlocked}>
                                 {submitting ? "Obrada..." : "Potvrdi plaćanje"}
                             </button>
                         </div>

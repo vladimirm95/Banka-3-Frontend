@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { beginTotpSetup, confirmTotpSetup } from "../services/AuthService";
+import useFailedAttempts, { BLOCKED_MESSAGE } from "../utils/useFailedAttempts";
 import Sidebar from "../components/Sidebar.jsx";
 import "./TotpSetupPage.css";
 
@@ -12,6 +13,7 @@ export default function TotpSetupPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { isBlocked, increment, reset } = useFailedAttempts("totp-setup");
 
   async function handleBeginSetup() {
     try {
@@ -34,13 +36,19 @@ export default function TotpSetupPage() {
   async function handleConfirm(e) {
     e.preventDefault();
     if (code.length !== 6) return;
+    if (isBlocked) {
+      setError(BLOCKED_MESSAGE);
+      return;
+    }
 
     try {
       setLoading(true);
       setError("");
       await confirmTotpSetup(code);
+      reset();
       setPhase("done");
     } catch (err) {
+      increment();
       setError(
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -118,12 +126,14 @@ export default function TotpSetupPage() {
                   autoComplete="one-time-code"
                   autoFocus
                 />
-                {error && <p className="totp-setup-error">{error}</p>}
+                {(error || isBlocked) && (
+                  <p className="totp-setup-error">{isBlocked ? BLOCKED_MESSAGE : error}</p>
+                )}
                 <div className="totp-setup-actions">
                   <button type="button" className="totp-setup-btn-secondary" onClick={() => { setPhase("qr"); setError(""); }}>
                     Nazad
                   </button>
-                  <button type="submit" className="totp-setup-btn-primary" disabled={code.length < 6 || loading}>
+                  <button type="submit" className="totp-setup-btn-primary" disabled={code.length < 6 || loading || isBlocked}>
                     {loading ? "Provera..." : "Potvrdi"}
                   </button>
                 </div>
