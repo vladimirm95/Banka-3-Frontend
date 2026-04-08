@@ -9,8 +9,8 @@ describe("Transactions API integracija", () => {
     }).then((resp) => {
       accessToken = resp.body.accessToken || resp.body.access_token;
       cy.window().then((win) => {
-        win.localStorage.setItem("accessToken", accessToken);
-        win.localStorage.setItem("refreshToken", resp.body.refreshToken || resp.body.refresh_token);
+        win.sessionStorage.setItem("accessToken", accessToken);
+        win.sessionStorage.setItem("refreshToken", resp.body.refreshToken || resp.body.refresh_token);
       });
     });
   });

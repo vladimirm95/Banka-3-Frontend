@@ -18,7 +18,7 @@ describe("Auth integracija", () => {
       cy.get('button[type="submit"]').click();
       cy.url().should("include", "/employees");
       cy.window().then((win) => {
-        expect(win.localStorage.getItem("accessToken")).to.not.be.null;
+        expect(win.sessionStorage.getItem("accessToken")).to.not.be.null;
       });
     });
 

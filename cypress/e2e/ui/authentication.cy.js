@@ -46,10 +46,10 @@ describe("Autentifikacija", () => {
     cy.wait("@getEmployees");
     cy.url().should("include", "/employees");
     cy.window().then((win) => {
-      expect(win.localStorage.getItem("accessToken")).to.eq("mock_access_token_123");
-      expect(win.localStorage.getItem("refreshToken")).to.eq("mock_refresh_token_123");
-      expect(win.localStorage.getItem("userRole")).to.eq("employee");
-      expect(win.localStorage.getItem("permissions")).to.eq('["admin"]');
+      expect(win.sessionStorage.getItem("accessToken")).to.eq("mock_access_token_123");
+      expect(win.sessionStorage.getItem("refreshToken")).to.eq("mock_refresh_token_123");
+      expect(win.sessionStorage.getItem("userRole")).to.eq("employee");
+      expect(win.sessionStorage.getItem("permissions")).to.eq('["admin"]');
     });
   });
 

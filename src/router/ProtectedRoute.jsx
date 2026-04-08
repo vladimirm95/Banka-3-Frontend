@@ -1,12 +1,12 @@
 import { Navigate } from "react-router-dom";
 
 export default function ProtectedRoute({ children, requiredRole, requiredPermission }) {
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  const userRole = localStorage.getItem("userRole");
+  const userRole = sessionStorage.getItem("userRole");
 
   if (requiredRole && userRole && userRole !== requiredRole) {
     if (userRole === "client") {
@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children, requiredRole, requiredPermiss
   if (requiredPermission) {
     let permissions = [];
     try {
-      permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+      permissions = JSON.parse(sessionStorage.getItem("permissions") || "[]");
     } catch {
       permissions = [];
     }

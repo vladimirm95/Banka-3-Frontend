@@ -7,28 +7,28 @@ Cypress.Commands.add(
     permissions = ["admin"],
   } = {}) => {
     cy.window().then((win) => {
-      win.localStorage.setItem("accessToken", accessToken);
-      win.localStorage.setItem("refreshToken", refreshToken);
-      win.localStorage.setItem("userRole", userRole);
-      win.localStorage.setItem("permissions", JSON.stringify(permissions));
+      win.sessionStorage.setItem("accessToken", accessToken);
+      win.sessionStorage.setItem("refreshToken", refreshToken);
+      win.sessionStorage.setItem("userRole", userRole);
+      win.sessionStorage.setItem("permissions", JSON.stringify(permissions));
     });
   }
 );
 
 Cypress.Commands.add("loginBypass", () => {
   cy.window().then((win) => {
-    win.localStorage.setItem("accessToken", "mock_access_token_123");
-    win.localStorage.setItem("refreshToken", "mock_refresh_token_123");
+    win.sessionStorage.setItem("accessToken", "mock_access_token_123");
+    win.sessionStorage.setItem("refreshToken", "mock_refresh_token_123");
   });
 });
 
 Cypress.Commands.add("visitAsEmployee", (path = "/employees", options = {}) => {
   cy.visit(path, {
     onBeforeLoad(win) {
-      win.localStorage.setItem("accessToken", "mock_access_token_123");
-      win.localStorage.setItem("refreshToken", "mock_refresh_token_123");
-      win.localStorage.setItem("userRole", "employee");
-      win.localStorage.setItem("permissions", JSON.stringify(["admin"]));
+      win.sessionStorage.setItem("accessToken", "mock_access_token_123");
+      win.sessionStorage.setItem("refreshToken", "mock_refresh_token_123");
+      win.sessionStorage.setItem("userRole", "employee");
+      win.sessionStorage.setItem("permissions", JSON.stringify(["admin"]));
     },
     ...options,
   });
@@ -37,10 +37,10 @@ Cypress.Commands.add("visitAsEmployee", (path = "/employees", options = {}) => {
 Cypress.Commands.add("visitAsClient", (path = "/dashboard", options = {}) => {
   cy.visit(path, {
     onBeforeLoad(win) {
-      win.localStorage.setItem("accessToken", "mock_access_token_123");
-      win.localStorage.setItem("refreshToken", "mock_refresh_token_123");
-      win.localStorage.setItem("userRole", "client");
-      win.localStorage.setItem("permissions", JSON.stringify([]));
+      win.sessionStorage.setItem("accessToken", "mock_access_token_123");
+      win.sessionStorage.setItem("refreshToken", "mock_refresh_token_123");
+      win.sessionStorage.setItem("userRole", "client");
+      win.sessionStorage.setItem("permissions", JSON.stringify([]));
     },
     ...options,
   });
@@ -70,8 +70,8 @@ Cypress.Commands.add("loginWithBackend", (email = "jovana@primer.raf", password 
     const refreshToken = resp.body.refreshToken || resp.body.refresh_token;
     
     cy.window().then((win) => {
-      win.localStorage.setItem("accessToken", accessToken);
-      win.localStorage.setItem("refreshToken", refreshToken);
+      win.sessionStorage.setItem("accessToken", accessToken);
+      win.sessionStorage.setItem("refreshToken", refreshToken);
     });
   });
 });

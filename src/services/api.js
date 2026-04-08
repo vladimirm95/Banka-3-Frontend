@@ -6,8 +6,11 @@ const baseURL = import.meta.env.VITE_API_URL
 
 const api = axios.create({ baseURL });
 
+// Auth podaci se čuvaju u sessionStorage (ne localStorage) kako bi svaki tab
+// imao izolovanu sesiju — sprečava koliziju kada su Admin i Klijent otvoreni u
+// različitim tabovima istog brauzera (#161).
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -25,12 +28,12 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      const storedRefresh = localStorage.getItem("refreshToken");
+      const storedRefresh = sessionStorage.getItem("refreshToken");
       if (!storedRefresh) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userRole");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("userRole");
         window.location.href = "/login";
         return Promise.reject(error);
       }
@@ -41,15 +44,15 @@ api.interceptors.response.use(
         });
         const newAccess = data.access_token || data.accessToken;
         const newRefresh = data.refresh_token || data.refreshToken;
-        localStorage.setItem("accessToken", newAccess);
-        localStorage.setItem("refreshToken", newRefresh);
+        sessionStorage.setItem("accessToken", newAccess);
+        sessionStorage.setItem("refreshToken", newRefresh);
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userRole");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("userRole");
         window.location.href = "/login";
         return Promise.reject(error);
       }

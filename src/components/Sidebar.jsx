@@ -8,7 +8,7 @@ export default function MenuDropdown() {
     const [open, setOpen] = useState(false);
     const panelRef = useRef(null);
     const navigate = useNavigate();
-    const role = localStorage.getItem("userRole");
+    const role = sessionStorage.getItem("userRole");
 
     useEffect(() => {
         if (!open) return;
@@ -39,10 +39,10 @@ export default function MenuDropdown() {
         try {
             await logout();
         } catch {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("userId");
-            localStorage.removeItem("userRole");
+            sessionStorage.removeItem("accessToken");
+            sessionStorage.removeItem("refreshToken");
+            sessionStorage.removeItem("userId");
+            sessionStorage.removeItem("userRole");
         }
 
         navigate("/login");

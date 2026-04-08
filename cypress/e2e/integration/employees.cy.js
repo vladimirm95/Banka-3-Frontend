@@ -9,8 +9,8 @@ describe("Employee API integracija", () => {
     }).then((resp) => {
       accessToken = resp.body.access_token;
       cy.window().then((win) => {
-        win.localStorage.setItem("accessToken", resp.body.access_token);
-        win.localStorage.setItem("refreshToken", resp.body.refresh_token);
+        win.sessionStorage.setItem("accessToken", resp.body.access_token);
+        win.sessionStorage.setItem("refreshToken", resp.body.refresh_token);
       });
     });
   });

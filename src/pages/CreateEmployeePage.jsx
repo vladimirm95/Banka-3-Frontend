@@ -62,7 +62,7 @@ export default function CreateEmployeePage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const permissions = JSON.parse(sessionStorage.getItem("permissions") || "[]");
   const isAdmin = permissions.includes("admin");
 
   useEffect(() => {
