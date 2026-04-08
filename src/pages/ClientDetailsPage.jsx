@@ -121,7 +121,17 @@ export default function ClientDetailsPage() {
                         </div>
 
                         <div className="profile-header-actions">
-                            <button className="profile-btn profile-btn-secondary" onClick={() => navigate("/clients")}>
+                            <button
+                                className="profile-btn profile-btn-primary"
+                                onClick={() => navigate(`/clients/edit/${id}`)}
+                            >
+                                Uredi klijenta
+                            </button>
+
+                            <button
+                                className="profile-btn profile-btn-secondary"
+                                onClick={() => navigate("/clients")}
+                            >
                                 Nazad
                             </button>
                         </div>

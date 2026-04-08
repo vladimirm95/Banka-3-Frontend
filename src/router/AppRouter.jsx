@@ -30,6 +30,7 @@ import BerzaPage from "../pages/BerzaPage.jsx";
 import PaymentPage from "../pages/PaymentPage.jsx";
 import TotpSetupPage from "../pages/TotpSetupPage.jsx";
 import TransferPage from "../pages/TransferPage.jsx";
+import EditClientPage from "../pages/EditClientPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -56,6 +57,7 @@ export default function AppRouter() {
           <Route path="/clients" element={<ProtectedRoute requiredRole="employee"><ClientsPage /></ProtectedRoute>} />
           <Route path="/clients/create" element={<ProtectedRoute requiredRole="employee"><CreateClientPage /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
+          <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
 
           <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>
           <Route path="/employees/edit/:id" element={<ProtectedRoute requiredRole="employee"><EditEmployeePage /></ProtectedRoute>} />

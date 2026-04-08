@@ -57,6 +57,24 @@ export async function getCurrentClient(email) {
   return client;
 }
 
+export async function updateClient(id, clientData) {
+  const birthTimestamp = clientData.dateOfBirth
+  ? Math.floor(new Date(clientData.dateOfBirth).getTime() / 1000) : 0;
+
+  const response = await api.put(`/clients/${id}`, {
+    first_name: clientData.firstName?.trim() || "",
+    last_name: clientData.lastName?.trim() || "",
+    date_of_birth: birthTimestamp,
+    gender: clientData.gender || "",
+    email: clientData.email?.trim() || "",
+    phone_number: clientData.phoneNumber?.replace(/\D/g, "") || "",
+    address: clientData.address?.trim() || "",
+  });
+
+  clearClientCache();
+  return response.data;
+}
+
 // OVO JE FUNKCIJA KOJA JE NEDOSTAJALA:
 export function clearClientCache() {
   clientCache = null;
