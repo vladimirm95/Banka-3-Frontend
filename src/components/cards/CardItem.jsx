@@ -1,7 +1,19 @@
 import { useState } from "react";
 import { blockCard } from "../../services/CardService";
-import { formatCardNumber } from "../../services/CardService";
 import "./CardItem.css";
+
+function maskCardNumber(number) {
+  if (!number) return "";
+
+  const clean = number.replace(/\s+/g, "");
+
+  if (clean.length < 8) return number;
+
+  const first = clean.slice(0, 4);
+  const last = clean.slice(-4);
+
+  return `${first} **** **** ${last}`;
+}
 
 function CardItem({ card, account, isSelected, onSelect, onCardBlocked }) {
   const [loading, setLoading] = useState(false);
@@ -79,7 +91,7 @@ function CardItem({ card, account, isSelected, onSelect, onCardBlocked }) {
 
         <div className="card-number-section">
           <span className="card-number">
-            {formatCardNumber(card.cardNumber)}
+            {maskCardNumber(card.cardNumber)}
           </span>
         </div>
 
@@ -118,7 +130,7 @@ function CardItem({ card, account, isSelected, onSelect, onCardBlocked }) {
 
               <div className="detail-row">
                 <span className="detail-label">Broj kartice:</span>
-                <span className="detail-value">{card.cardNumber}</span>
+                <span className="detail-value">{maskCardNumber(card.cardNumber)}</span>
               </div>
 
               <div className="detail-row">

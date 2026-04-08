@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  getUserCards,
-  getUserAccounts,
-  requestCard
-} from "../services/CardService";
-import { getCurrentUserEmail } from "../services/AuthService";
+import { getUserCards, getUserAccounts, requestCard } from "../services/CardService";
 import CardsList from "../components/cards/CardsList";
 import CreateCardForm from "../components/cards/CreateCardForm";
+import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import "./CardsPage.css";
 
@@ -18,7 +13,6 @@ function CardsPage() {
   const [cards, setCards] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [activeTab, setActiveTab] = useState("list");
   const [message, setMessage] = useState("");
 
@@ -36,15 +30,15 @@ function CardsPage() {
   }, [location.search, role]);
 
   useEffect(() => {
-    const email = getCurrentUserEmail();
+    const token = localStorage.getItem("accessToken");
 
-    if (!email) {
+    if (!token) {
       navigate("/login");
       return;
     }
 
     loadData();
-  }, [navigate]);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -67,21 +61,26 @@ function CardsPage() {
   const handleCardRequest = async (cardData) => {
     try {
       await requestCard(cardData);
-      setMessage("Zahtev poslat. Proverite email za potvrdu.");
-      setActiveTab("list");
-      navigate("/cards");
+
+      setMessage("Kartica uspešno zatražena! Proverite backend log.");
+
+      navigate("/cards", { replace: true });
+
       await loadData();
+
+      setTimeout(() => setMessage(""), 3000);
+
     } catch (error) {
       setMessage("Greška: " + error.message);
     }
   };
 
   const handleCardBlocked = (cardId) => {
-    setCards(cards.map(card =>
-      card.id === cardId
-        ? { ...card, status: "Blokirana" }
-        : card
-    ));
+    setCards(prev =>
+      prev.map(card =>
+        card.id === cardId ? { ...card, status: "Blokirana" } : card
+      )
+    );
 
     setMessage("Kartica blokirana");
     setTimeout(() => setMessage(""), 3000);

@@ -5,18 +5,14 @@ function CreateCardForm({ accounts, onSubmit }) {
   const [formData, setFormData] = useState({ accountNumber: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
-    const { value } = e.target;
-    setFormData({ accountNumber: value });
+    setFormData({ accountNumber: e.target.value });
     setError("");
   };
 
-  const handleRequestCard = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     if (!formData.accountNumber) {
       setError("Izaberite račun.");
@@ -27,11 +23,8 @@ function CreateCardForm({ accounts, onSubmit }) {
       setLoading(true);
 
       await onSubmit({
-        accountNumber: formData.accountNumber
+        accountNumber: formData.accountNumber,
       });
-
-      setSuccess("Zahtev poslat. Proverite email za potvrdu.");
-      setFormData({ accountNumber: "" });
 
     } catch (err) {
       setError(err.message || "Greška.");
@@ -41,22 +34,22 @@ function CreateCardForm({ accounts, onSubmit }) {
   };
 
   return (
-    <form className="create-card-form" onSubmit={handleRequestCard}>
+    <form className="create-card-form" onSubmit={handleSubmit}>
       <h2>Zatraži novu karticu</h2>
 
       {error && <div className="message error">{error}</div>}
-      {success && <div className="message success">{success}</div>}
 
       <div className="form-group">
         <label>Račun *</label>
         <select
-          value={formData.accountNumber}
+          value={formData.accountNumber || ""}
           onChange={handleChange}
           disabled={loading}
         >
           <option value="">-- Izaberite --</option>
+
           {accounts.map(acc => (
-            <option key={acc.id} value={acc.accountNumber}>
+            <option key={acc.accountNumber} value={acc.accountNumber}>
               {acc.accountName} - {acc.currency}
             </option>
           ))}
