@@ -13,7 +13,7 @@ function EmployeesPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const permissions = JSON.parse(localStorage.getItem("permissions") || "[]");
+  const permissions = JSON.parse(sessionStorage.getItem("permissions") || "[]");
   const isAdmin = permissions.includes("admin");
 
   useEffect(() => {

@@ -14,11 +14,11 @@ export const login = async (email, password) => {
 
 export const logout = async () => {
   await api.post("/logout");
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("userId");
-  localStorage.removeItem("userRole");
-  localStorage.removeItem("permissions");
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("refreshToken");
+  sessionStorage.removeItem("userId");
+  sessionStorage.removeItem("userRole");
+  sessionStorage.removeItem("permissions");
   clearClientCache();
 };
 
@@ -45,12 +45,12 @@ export const confirmPasswordReset = async (token, newPassword) => {
 };
 
 export const getCurrentUserId = () => {
-  return localStorage.getItem("userId");
+  return sessionStorage.getItem("userId");
 };
 
 export const getTokenPayload = () => {
   try {
-    const token = localStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken");
     if (!token) return null;
     return JSON.parse(atob(token.split(".")[1]));
   } catch {
@@ -74,7 +74,7 @@ export const confirmTotpSetup = async (code) => {
 
 export const getPermissions = () => {
   try {
-    return JSON.parse(localStorage.getItem("permissions") || "[]");
+    return JSON.parse(sessionStorage.getItem("permissions") || "[]");
   } catch {
     return [];
   }

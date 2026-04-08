@@ -35,24 +35,24 @@ export default function LoginPage() {
       reset();
 
       // 2. OBAVEZNO upisujemo tokene odmah, jer sledeći API pozivi 
-      // u ClientService/EmployeeService koriste ove tokene iz localStorage
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      // u ClientService/EmployeeService koriste ove tokene iz sessionStorage
+      sessionStorage.setItem("accessToken", data.accessToken);
+      sessionStorage.setItem("refreshToken", data.refreshToken);
+      sessionStorage.setItem("permissions", JSON.stringify(data.permissions));
 
       // 3. Utvrđujemo ulogu (Role Detection)
       // Pošto backend ne vraća ulogu u login odgovoru, proveravamo bazu klijenata
-      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      sessionStorage.setItem("permissions", JSON.stringify(data.permissions));
       const permissions = data.permissions || [];
 
       if (permissions.includes("admin")) {
-        localStorage.setItem("userRole", "employee");  // admin JE employee
+        sessionStorage.setItem("userRole", "employee");  // admin JE employee
         navigate("/employees");
       } else if (permissions.length > 0) {
-        localStorage.setItem("userRole", "employee");
+        sessionStorage.setItem("userRole", "employee");
         navigate("/employees");
       } else {
-        localStorage.setItem("userRole", "client");
+        sessionStorage.setItem("userRole", "client");
         navigate("/dashboard");
       }
 
@@ -68,10 +68,10 @@ export default function LoginPage() {
       } else {
         setMessage("Mrežna greška. Proverite da li je Backend pokrenut.");
       }
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userRole");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("userId");
+      sessionStorage.removeItem("userRole");
     } finally {
       setLoading(false);
     }

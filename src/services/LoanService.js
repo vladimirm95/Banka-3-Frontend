@@ -68,8 +68,8 @@ export async function getLoanRequests() {
  * ADMIN: Odobravanje kredita
  */
 export async function approveLoanRequest(requestId) {
-  const token = localStorage.getItem("accessToken");
-  const role = localStorage.getItem("userRole");
+  const token = sessionStorage.getItem("accessToken");
+  const role = sessionStorage.getItem("userRole");
   
   console.log("🔍 Approve Request Debug:");
   console.log("  Token:", token?.substring(0, 20) + "...");
