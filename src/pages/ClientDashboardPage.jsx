@@ -6,15 +6,13 @@ import { getCurrentUserEmail } from "../services/AuthService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./ClientDashboardPage.css";
 
-function fmt(amount, currency = "RSD") {
-    return (
-        new Intl.NumberFormat("sr-RS", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(Math.abs(amount)) +
-        " " +
-        currency
-    );
+function fmt(amount, currency) {
+    const formattedAmount = new Intl.NumberFormat("sr-RS", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(Math.abs(amount));
+
+    return currency ? `${formattedAmount} ${currency}` : formattedAmount;
 }
 
 export default function ClientDashboardPage() {
@@ -185,7 +183,9 @@ export default function ClientDashboardPage() {
                         <div className="dash-bc-circle2"/>
                         <p className="dash-bc-label">Ukupno stanje</p>
                         <p className="dash-bc-amount">{fmt(mainAccount.balance, mainAccount.currency)}</p>
-                        <p className="dash-bc-avail">Raspoloživo: {fmt(mainAccount.available, mainAccount.currency)}</p>
+                        <p className="dash-bc-avail">
+                            Raspoloživo: {fmt(mainAccount.available ?? mainAccount.available_balance ?? mainAccount.balance, mainAccount.currency)}
+                        </p>
                         <div className="dash-quick-row">
                             {quickActions.map(({label, icon, target}) => (
                                 <button key={label} className="dash-quick-btn" onClick={() => navigate(target)}>
@@ -272,7 +272,7 @@ export default function ClientDashboardPage() {
                                 <p className="dash-tx-date">{tx.timestamp ? new Date(tx.timestamp).toLocaleDateString("sr-RS") : "---"}</p>
                             </div>
                             <p className={`dash-tx-amt ${isIncoming ? "dash-tx-amt--in" : ""}`}>
-                                {isIncoming ? "+" : "-"}{fmt(amt, mainAccount?.currency || "RSD")}
+                                {isIncoming ? "+" : "-"}{fmt(amt, tx.currency || mainAccount?.currency)}
                             </p>
                         </div>
                         );

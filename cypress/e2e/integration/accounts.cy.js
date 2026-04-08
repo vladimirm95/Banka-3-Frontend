@@ -5,7 +5,7 @@ describe("Accounts API integracija", () => {
     cy.request({
       method: "POST",
       url: "/api/login",
-      body: { email: "petar@primer.raf", password: "Test1234!" },
+      body: { email: "jovana@primer.raf", password: "Test1234!" },
     }).then((resp) => {
       accessToken = resp.body.accessToken || resp.body.access_token;
     });

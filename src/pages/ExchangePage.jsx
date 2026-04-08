@@ -5,16 +5,15 @@ import { getAccounts } from "../services/AccountService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./ExchangePage.css";
 
-function fmt(amount, currency = "RSD") {
-  if (amount == null) return "—";
-  return (
-    new Intl.NumberFormat("sr-RS", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount) +
-    " " +
-    currency
-  );
+function fmt(amount, currency) {
+    if (amount == null) return "—";
+
+    const formattedAmount = new Intl.NumberFormat("sr-RS", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(amount);
+
+    return currency ? `${formattedAmount} ${currency}` : formattedAmount;
 }
 
 export default function ExchangePage() {

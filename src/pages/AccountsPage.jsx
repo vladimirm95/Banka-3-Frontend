@@ -4,12 +4,15 @@ import { getAccounts } from "../services/AccountService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./AccountsPage.css";
 
-function fmt(amount, currency = "RSD") {
+function fmt(amount, currency) {
     if (amount == null) return "—";
-    return new Intl.NumberFormat("sr-RS", {
+
+    const formattedAmount = new Intl.NumberFormat("sr-RS", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(amount) + " " + currency;
+    }).format(amount);
+
+    return currency ? `${formattedAmount} ${currency}` : formattedAmount;
 }
 
 function isBusinessAccount(account) {

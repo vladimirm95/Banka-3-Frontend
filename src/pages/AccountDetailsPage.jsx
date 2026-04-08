@@ -9,16 +9,15 @@ import {
 import Sidebar from "../components/Sidebar.jsx";
 import "./AccountDetailsPage.css";
 
-function fmt(amount, currency = "RSD") {
+function fmt(amount, currency) {
     if (amount == null || Number.isNaN(Number(amount))) return "—";
-    return (
-        new Intl.NumberFormat("sr-RS", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(Number(amount)) +
-        " " +
-        currency
-    );
+
+    const formattedAmount = new Intl.NumberFormat("sr-RS", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(Number(amount));
+
+    return currency ? `${formattedAmount} ${currency}` : formattedAmount;
 }
 
 function formatAccountType(type) {
@@ -329,6 +328,7 @@ export default function AccountDetailsPage() {
                     <div className="ad-txn-list">
                         {transactions.map((tx, index) => {
                             const amt = tx.final_amount || tx.initial_amount || tx.amount || 0;
+                            const txCurrency = tx.currency || account.currency;
                             const isDebit = String(tx.from_account || "") === String(account.account_number || "");
 
                             return (
@@ -356,7 +356,7 @@ export default function AccountDetailsPage() {
                                         }`}
                                     >
                                         {isDebit ? "-" : "+"}
-                                        {fmt(amt, account.currency)}
+                                        {fmt(amt, txCurrency)}
                                     </p>
                                 </div>
                             );

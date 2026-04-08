@@ -60,7 +60,7 @@ Cypress.Commands.add("stubEmployeeDetails", (employee) => {
   }).as("getEmployee");
 });
 
-Cypress.Commands.add("loginWithBackend", (email = "petar@primer.raf", password = "Test1234!") => {
+Cypress.Commands.add("loginWithBackend", (email = "jovana@primer.raf", password = "Test1234!") => {
   cy.request({
     method: "POST",
     url: "/api/login",

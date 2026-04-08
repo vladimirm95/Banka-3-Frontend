@@ -204,11 +204,12 @@ export default function TransferPage() {
               </div>
               <div className="pay-summary-row">
                 <span>Iznos</span>
-                <span>
-                  {new Intl.NumberFormat("sr-RS", {
-                    minimumFractionDigits: 2,
+                  <span>
+                {new Intl.NumberFormat("sr-RS", {
+                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
-                  }).format(Number(amount))}
+                }).format(Number(amount))}{" "}
+                      {accounts.find((acc) => acc.account_number === fromAccount)?.currency || ""}
                 </span>
               </div>
             </div>
