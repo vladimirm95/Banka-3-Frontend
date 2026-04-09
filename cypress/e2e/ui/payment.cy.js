@@ -20,16 +20,11 @@ describe("PaymentPage", () => {
   });
 
   function popuniValidnuFormu() {
-<<<<<<< HEAD
     cy.get('select[name="sender_account"]').select("333000001123456789");
     cy.get('input[name="recipient_account"]').clear().type("333000009987654321");
-=======
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').clear().type("265000000009987612");
->>>>>>> 2f8bc2c (fix: amount u parama i ispravni testovi)
     cy.get('input[name="recipient_name"]').clear().type("Petar Nikolić");
     cy.get('input[name="amount"]').clear().type("1000");
-    cy.get('input[name="payment_code"]').clear().type("289");
+    cy.get('input[name="payment_code"]').type("289");
     cy.get('input[name="purpose"]').clear().type("Uplata za usluge");
   }
 
@@ -54,15 +49,13 @@ describe("PaymentPage", () => {
   });
 
   it("otvara TOTP modal nakon validnog submita", () => {
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("265000000009987612");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("333000009987654321");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
     cy.get('input[name="purpose"]').type("Uplata za usluge");
-
     cy.get(".pay-btn-submit").click();
-
     cy.get(".totp-overlay").should("be.visible");
     cy.get(".totp-input").should("have.length", 6);
   });
@@ -73,8 +66,8 @@ describe("PaymentPage", () => {
       body: { message: "ok" },
     }).as("paymentRequest");
 
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("265000000009987612");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("333000009987654321");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1500");
     cy.get('input[name="payment_code"]').type("289");
@@ -88,18 +81,10 @@ describe("PaymentPage", () => {
     cy.wait("@paymentRequest").then((interception) => {
       expect(interception.request.url).to.include("/transactions/payment");
       expect(interception.request.headers).to.have.property("totp", "123456");
-
       const body = interception.request.body;
-<<<<<<< HEAD
       expect(body.sender_account).to.eq("333000001123456789");
       expect(body.recipient_account).to.eq("333000009987654321");
-      expect(body.recipient_name).to.eq("Petar Nikolić");
-      expect(body.amount).to.eq(1500);
-=======
-      expect(body.sender_account).to.eq("265-0000000011234-56");
-      expect(body.recipient_account).to.eq("265000000009987612");
       expect(body.amount).to.eq(150000);
->>>>>>> 2f8bc2c (fix: amount u parama i ispravni testovi)
       expect(body.payment_code).to.eq("289");
       expect(body.reference_number).to.eq("97-12345678");
       expect(body.purpose).to.eq("Uplata za usluge");
@@ -112,8 +97,8 @@ describe("PaymentPage", () => {
       body: { message: "ok" },
     }).as("paymentRequest");
 
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("265000000009987612");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("333000009987654321");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
@@ -135,8 +120,8 @@ describe("PaymentPage", () => {
       body: { message: "invalid totp code" },
     }).as("paymentRequest");
 
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("265000000009987612");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("333000009987654321");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
@@ -148,172 +133,102 @@ describe("PaymentPage", () => {
 
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and("contain", "Uneti TOTP kod nije ispravan. Pokušajte ponovo.");
+    cy.get(".totp-error").should("be.visible").and("contain", "Uneti TOTP kod nije ispravan. Pokušajte ponovo.");
   });
 
   it("prikazuje poruku za nedovoljno sredstava", () => {
-    cy.intercept("POST", "**/api/transactions/payment", {
-      statusCode: 400,
-      body: { message: "insufficient funds" },
-    }).as("paymentRequest");
-
+    cy.intercept("POST", "**/api/transactions/payment", { statusCode: 400, body: { message: "insufficient funds" } }).as("paymentRequest");
     popuniValidnuFormu();
-
     cy.get(".pay-btn-submit").click();
     unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
-
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and(
-            "contain",
-            "Nemate dovoljno sredstava na izabranom računu za ovo plaćanje."
-        );
+    cy.get(".totp-error").should("be.visible").and("contain", "Nemate dovoljno sredstava na izabranom računu za ovo plaćanje.");
   });
 
   it("prikazuje poruku za neaktivan račun primaoca", () => {
-    cy.intercept("POST", "**/api/transactions/payment", {
-      statusCode: 400,
-      body: { message: "recipient account is inactive" },
-    }).as("paymentRequest");
-
+    cy.intercept("POST", "**/api/transactions/payment", { statusCode: 400, body: { message: "recipient account is inactive" } }).as("paymentRequest");
     popuniValidnuFormu();
-
     cy.get(".pay-btn-submit").click();
     unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
-
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and(
-            "contain",
-            "Račun primaoca nije aktivan i uplata trenutno nije moguća."
-        );
+    cy.get(".totp-error").should("be.visible").and("contain", "Račun primaoca nije aktivan i uplata trenutno nije moguća.");
   });
 
   it("prikazuje poruku za prekoračen dnevni limit", () => {
-    cy.intercept("POST", "**/api/transactions/payment", {
-      statusCode: 400,
-      body: { message: "daily limit exceeded" },
-    }).as("paymentRequest");
-
+    cy.intercept("POST", "**/api/transactions/payment", { statusCode: 400, body: { message: "daily limit exceeded" } }).as("paymentRequest");
     popuniValidnuFormu();
-
     cy.get(".pay-btn-submit").click();
     unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
-
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and(
-            "contain",
-            "Prekoračili ste dnevni limit za plaćanja sa ovog računa."
-        );
+    cy.get(".totp-error").should("be.visible").and("contain", "Prekoračili ste dnevni limit za plaćanja sa ovog računa.");
   });
 
   it("prikazuje poruku kada račun nije pronađen", () => {
-    cy.intercept("POST", "**/api/transactions/payment", {
-      statusCode: 404,
-      body: { message: "account not found" },
-    }).as("paymentRequest");
-
+    cy.intercept("POST", "**/api/transactions/payment", { statusCode: 404, body: { message: "account not found" } }).as("paymentRequest");
     popuniValidnuFormu();
-
     cy.get(".pay-btn-submit").click();
     unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
-
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and(
-            "contain",
-            "Uneti račun nije pronađen. Proverite broj računa i pokušajte ponovo."
-        );
+    cy.get(".totp-error").should("be.visible").and("contain", "Uneti račun nije pronađen. Proverite broj računa i pokušajte ponovo.");
   });
 
   it("prikazuje poruku kada sistem privremeno nije dostupan", () => {
-    cy.intercept("POST", "**/api/transactions/payment", {
-      statusCode: 503,
-      body: { message: "service unavailable" },
-    }).as("paymentRequest");
-
+    cy.intercept("POST", "**/api/transactions/payment", { statusCode: 503, body: { message: "service unavailable" } }).as("paymentRequest");
     popuniValidnuFormu();
-
     cy.get(".pay-btn-submit").click();
     unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
-
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and(
-            "contain",
-            "Plaćanje trenutno nije moguće zbog privremenog problema sa sistemom. Pokušajte ponovo kasnije."
-        );
+    cy.get(".totp-error").should("be.visible").and("contain", "Plaćanje trenutno nije moguće zbog privremenog problema sa sistemom. Pokušajte ponovo kasnije.");
   });
 
   it("prikazuje poruku kada mreža nije dostupna", () => {
-    cy.intercept("POST", "**/api/transactions/payment", {
-      forceNetworkError: true,
-    }).as("paymentRequest");
-
+    cy.intercept("POST", "**/api/transactions/payment", { forceNetworkError: true }).as("paymentRequest");
     popuniValidnuFormu();
-
     cy.get(".pay-btn-submit").click();
     unesiTotpKod("123456");
     cy.get(".totp-btn-confirm").click();
-
     cy.wait("@paymentRequest");
     cy.get(".totp-overlay").should("be.visible");
-    cy.get(".totp-error")
-        .should("be.visible")
-        .and(
-            "contain",
-            "Plaćanje trenutno nije moguće zbog problema sa mrežom. Pokušajte ponovo."
-        );
+    cy.get(".totp-error").should("be.visible").and("contain", "Plaćanje trenutno nije moguće zbog problema sa mrežom. Pokušajte ponovo.");
   });
 
   it("zatvara TOTP modal na Otkaži", () => {
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("265000000009987612");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("333000009987654321");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
     cy.get('input[name="purpose"]').type("Test");
-
     cy.get(".pay-btn-submit").click();
     cy.get(".totp-overlay").should("be.visible");
-
     cy.get(".totp-btn-cancel").click();
     cy.get(".totp-overlay").should("not.exist");
   });
 
   it("prikazuje grešku za broj računa kraći od 18 cifara", () => {
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
     cy.get('input[name="recipient_account"]').type("12345");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
     cy.get('input[name="purpose"]').type("Test");
-
     cy.get(".pay-btn-submit").click();
     cy.contains("Broj računa mora sadržati tačno 18 cifara.").should("be.visible");
   });
 
   it("prikazuje grešku za broj računa sa slovima", () => {
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("abcdefghijklmnopqr");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("12345"); // prekratak broj
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
@@ -321,16 +236,14 @@ describe("PaymentPage", () => {
 
     cy.get(".pay-btn-submit").click();
     cy.contains("Broj računa mora sadržati tačno 18 cifara.").should("be.visible");
-  });
-
+});
   it("ne prikazuje grešku za ispravan 18-cifreni broj računa", () => {
-    cy.get('select[name="sender_account"]').select("265-0000000011234-56");
-    cy.get('input[name="recipient_account"]').type("265000000009987612");
+    cy.get('select[name="sender_account"]').select("333000001123456789");
+    cy.get('input[name="recipient_account"]').type("333000009987654321");
     cy.get('input[name="recipient_name"]').type("Petar Nikolić");
     cy.get('input[name="amount"]').type("1000");
     cy.get('input[name="payment_code"]').type("289");
     cy.get('input[name="purpose"]').type("Test");
-
     cy.get(".pay-btn-submit").click();
     cy.get(".totp-overlay").should("be.visible");
   });
