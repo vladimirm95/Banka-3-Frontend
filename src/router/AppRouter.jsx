@@ -28,6 +28,7 @@ import ClientDashboardPage from "../pages/ClientDashboardPage.jsx";
 import ExchangePage from "../pages/ExchangePage.jsx";
 import BerzaPage from "../pages/BerzaPage.jsx";
 import PaymentPage from "../pages/PaymentPage.jsx";
+import PortfolioPage from "../pages/PortfolioPage.jsx";
 import TotpSetupPage from "../pages/TotpSetupPage.jsx";
 import TransferPage from "../pages/TransferPage.jsx";
 import TaxDashboardPage from "../pages/TaxDashboardPage.jsx";
@@ -77,6 +78,7 @@ export default function AppRouter() {
           <Route path="/transfer" element={<ProtectedRoute requiredRole="client"><TransferPage /></ProtectedRoute>} />
 
           <Route path="/accounts/:accountNumber" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/portfolio" element={<ProtectedRoute requiredRole="client"><PortfolioPage /></ProtectedRoute>} />
           <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
           <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 
