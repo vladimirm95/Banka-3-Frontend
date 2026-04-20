@@ -34,6 +34,7 @@ import TransferPage from "../pages/TransferPage.jsx";
 import TaxDashboardPage from "../pages/TaxDashboardPage.jsx";
 import EditClientPage from "../pages/EditClientPage.jsx";
 import SecurityDetailPage from "../pages/SecurityDetailPage.jsx";
+import SecuritiesPage from "../pages/SecuritiesPage.jsx";
 import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
 
 export default function AppRouter() {
@@ -64,6 +65,7 @@ export default function AppRouter() {
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
           <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
 
+        <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
         <Route path="/securities/:ticker" element={<ProtectedRoute requiredRole="employee"><SecurityDetailPage /></ProtectedRoute>} />
      
           <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>
