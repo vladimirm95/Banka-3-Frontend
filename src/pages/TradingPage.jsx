@@ -2,7 +2,7 @@ import { useState } from "react"
 import StockOptionsTable from "./StockOptionsTable"
 import OrderForm from "./OrderForm"
 import OrderDialog from "./OrderDialog"
-import { createOrder } from "../services/orderService"
+import { createOrder } from "../services/OrderService"
 import "./TradingPage.css"
 
 export default function TradingPage(){
