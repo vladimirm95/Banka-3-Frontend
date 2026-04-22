@@ -24,11 +24,13 @@
 .portfolio-summary {
     flex: 1;
     min-width: 240px;
+.portfolio-summary {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 28px;
     border-radius: 16px;
+    margin-bottom: 28px;
     border: 1px solid transparent;
 }
 

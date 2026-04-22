@@ -28,12 +28,15 @@ import ClientDashboardPage from "../pages/ClientDashboardPage.jsx";
 import ExchangePage from "../pages/ExchangePage.jsx";
 import BerzaPage from "../pages/BerzaPage.jsx";
 import PaymentPage from "../pages/PaymentPage.jsx";
+import PortfolioPage from "../pages/PortfolioPage.jsx";
 import TotpSetupPage from "../pages/TotpSetupPage.jsx";
 import TransferPage from "../pages/TransferPage.jsx";
 import TaxDashboardPage from "../pages/TaxDashboardPage.jsx";
 import EditClientPage from "../pages/EditClientPage.jsx";
 import SecurityDetailPage from "../pages/SecurityDetailPage.jsx";
+import SecuritiesPage from "../pages/SecuritiesPage.jsx";
 import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
+import TradingPage from "../pages/TradingPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -43,13 +46,14 @@ export default function AppRouter() {
 
           <Route path="/login" element={<LoginPage />} />
 
+
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/enter-token" element={<EnterTokenPage />} />
           <Route path="/reset-password" element={<ChangePasswordPage />} />
           <Route path="/set-password" element={<ChangePasswordPage />} />
 
           <Route path="/dashboard" element={<ProtectedRoute requiredRole="client"><ClientDashboardPage /></ProtectedRoute>} />
-
+          <Route path="/options" element={<ProtectedRoute requiredRole="client"><TradingPage /></ProtectedRoute>} />
           <Route path="/accounts" element={<ProtectedRoute requiredRole="client"><AccountsPage /></ProtectedRoute>} />
           <Route path="/accounts/create" element={<ProtectedRoute requiredRole="employee"><CreateAccountPage /></ProtectedRoute>} />
           <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee"><AccountsPage /></ProtectedRoute>} />
@@ -63,6 +67,7 @@ export default function AppRouter() {
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
           <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
 
+        <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
         <Route path="/securities/:ticker" element={<ProtectedRoute requiredRole="employee"><SecurityDetailPage /></ProtectedRoute>} />
      
           <Route path="/employees/create" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><CreateEmployeePage /></ProtectedRoute>}/>
@@ -77,6 +82,7 @@ export default function AppRouter() {
           <Route path="/transfer" element={<ProtectedRoute requiredRole="client"><TransferPage /></ProtectedRoute>} />
 
           <Route path="/accounts/:accountNumber" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
+          <Route path="/portfolio" element={<ProtectedRoute requiredRole="client"><PortfolioPage /></ProtectedRoute>} />
           <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
           <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 

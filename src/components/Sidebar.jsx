@@ -69,6 +69,7 @@ export default function MenuDropdown() {
                     ],
                 },
                 { title: "Menjačnica", items: [{ label: "Kursna lista / konverzija", path: "/exchange" }] },
+                { title: "Tržište", items: [{ label: "Hartije od vrednosti", path: "/securities" }] },
                 {
                     title: "Kartice",
                     items: [
@@ -103,7 +104,8 @@ export default function MenuDropdown() {
                         { label: "Svi krediti", path: "/employee-loans-list" },
                     ],
                 },
-                { title: "Porez", items: [{ label: "Porez na kapitalnu dobit", path: "/tax" }] }
+                { title: "Porez", items: [{ label: "Porez na kapitalnu dobit", path: "/tax" }] },
+                { title: "Tržište", items: [{ label: "Hartije od vrednosti", path: "/securities" }] }
             );
 
             if (isAdmin) {
