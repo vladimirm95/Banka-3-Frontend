@@ -32,17 +32,11 @@ describe("PortfolioPage – pregled hartija", () => {
     });
 
     it("prikazuje profit u zelenoj boji", () => {
-        cy.get(".pl--profit").should("exist");
-        cy.get(".pl--profit").each(($el) => {
-            cy.wrap($el).should("contain", "+");
-        });
+        cy.get("td").contains("+250,00").should("have.css", "color", "rgb(52, 211, 153)");
     });
 
     it("prikazuje gubitak u crvenoj boji", () => {
-        cy.get(".pl--loss").should("exist");
-        cy.get(".pl--loss").each(($el) => {
-            cy.wrap($el).invoke("text").should("not.contain", "+");
-        });
+        cy.get("td").contains("-150,00").should("have.css", "color", "rgb(248, 113, 113)");
     });
 
     it("prikazuje summary karticu sa ukupnim profit/gubitkom", () => {

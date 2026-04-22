@@ -13,6 +13,17 @@
     margin-bottom: 28px;
 }
 
+/* ── Summary kartice ── */
+.portfolio-summaries {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.portfolio-summary {
+    flex: 1;
+    min-width: 240px;
 .portfolio-summary {
     display: flex;
     justify-content: space-between;
@@ -31,6 +42,11 @@
 .portfolio-summary.summary--loss {
     background: rgba(248, 113, 113, 0.08);
     border-color: rgba(248, 113, 113, 0.20);
+}
+
+.portfolio-summary.summary--neutral {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.20);
 }
 
 .summary-label {
@@ -54,6 +70,11 @@
     color: #f87171;
 }
 
+.summary-value--neutral {
+    color: #818cf8;
+}
+
+/* ── Table ── */
 .portfolio-table-wrapper {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -96,6 +117,7 @@
     background: rgba(255, 255, 255, 0.02);
 }
 
+/* ── Cells ── */
 .security-type-badge {
     display: inline-block;
     padding: 3px 10px;
@@ -120,6 +142,11 @@
     font-size: 13px;
 }
 
+.position-value {
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
 .pl {
     font-weight: 700;
     font-size: 14px;
@@ -133,6 +160,7 @@
     color: #f87171;
 }
 
+/* ── Sell button ── */
 .sell-btn {
     padding: 8px 20px;
     background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
@@ -151,6 +179,7 @@
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.30);
 }
 
+/* ── Empty state ── */
 .portfolio-empty {
     text-align: center;
     padding: 60px 20px;
@@ -158,6 +187,7 @@
     color: #64748b;
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
     .portfolio-page {
         padding: 24px 20px;
@@ -165,6 +195,10 @@
 
     .portfolio-title {
         font-size: 20px;
+    }
+
+    .portfolio-summaries {
+        flex-direction: column;
     }
 
     .portfolio-summary {
@@ -187,4 +221,12 @@
         padding: 6px 14px;
         font-size: 12px;
     }
+    .pl--profit {
+        color: #34d399 !important;
+    }
+
+    .pl--loss {
+        color: #f87171 !important;
+    }
+
 }

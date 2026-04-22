@@ -57,12 +57,21 @@ function calcProfitLoss(security) {
     return (current_price - purchase_price) * quantity;
 }
 
+function calcPositionValue(security) {
+    return security.current_price * security.quantity;
+}
+
 export default function PortfolioPage() {
     const navigate = useNavigate();
     const [securities] = useState(MOCK_SECURITIES);
 
     const totalProfitLoss = securities.reduce(
         (sum, s) => sum + calcProfitLoss(s),
+        0
+    );
+
+    const totalPortfolioValue = securities.reduce(
+        (sum, s) => sum + calcPositionValue(s),
         0
     );
 
@@ -77,18 +86,29 @@ export default function PortfolioPage() {
 
             <h1 className="portfolio-title">Moj portfolio</h1>
 
-            <div
-                className={`portfolio-summary ${
-                    totalProfitLoss >= 0 ? "summary--profit" : "summary--loss"
-                }`}
-            >
-                <span className="summary-label">Ukupni profit/gubitak</span>
-                <span className="summary-value">
-                    {totalProfitLoss >= 0 ? "+" : ""}
-                    {fmt(totalProfitLoss)}
-                </span>
+            {/* Summary kartice */}
+            <div className="portfolio-summaries">
+                <div
+                    className={`portfolio-summary ${
+                        totalProfitLoss >= 0 ? "summary--profit" : "summary--loss"
+                    }`}
+                >
+                    <span className="summary-label">Ukupni profit/gubitak</span>
+                    <span className="summary-value">
+                        {totalProfitLoss >= 0 ? "+" : ""}
+                        {fmt(totalProfitLoss)}
+                    </span>
+                </div>
+
+                <div className="portfolio-summary summary--neutral">
+                    <span className="summary-label">Ukupna vrednost portfolia</span>
+                    <span className="summary-value summary-value--neutral">
+                        {fmt(totalPortfolioValue)}
+                    </span>
+                </div>
             </div>
 
+            {/* Tabela hartija */}
             {securities.length === 0 ? (
                 <div className="portfolio-empty">
                     <p>Nemate hartija od vrednosti u portfoliju.</p>
@@ -103,6 +123,7 @@ export default function PortfolioPage() {
                             <th>Naziv</th>
                             <th>Količina</th>
                             <th>Trenutna cena</th>
+                            <th>Vrednost pozicije</th>
                             <th>Profit/Gubitak</th>
                             <th></th>
                         </tr>
@@ -111,18 +132,22 @@ export default function PortfolioPage() {
                         {securities.map((s) => {
                             const pl = calcProfitLoss(s);
                             const isProfit = pl >= 0;
+                            const positionValue = calcPositionValue(s);
                             return (
                                 <tr key={s.id}>
                                     <td>
-                                            <span className="security-type-badge">
-                                                {s.type}
-                                            </span>
+                <span className="security-type-badge">
+                    {s.type}
+                </span>
                                     </td>
                                     <td className="ticker">{s.ticker}</td>
                                     <td className="security-name">{s.name}</td>
                                     <td>{s.quantity}</td>
                                     <td>{fmt(s.current_price, s.currency)}</td>
-                                    <td className={isProfit ? "pl pl--profit" : "pl pl--loss"}>
+                                    <td className="position-value">
+                                        {fmt(positionValue, s.currency)}
+                                    </td>
+                                    <td style={{ color: isProfit ? "#34d399" : "#f87171", fontWeight: 700 }}>
                                         {isProfit ? "+" : ""}
                                         {fmt(pl, s.currency)}
                                     </td>
