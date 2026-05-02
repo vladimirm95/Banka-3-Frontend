@@ -57,7 +57,7 @@ export default function LoginPage() {
           : has("manage_clients")
             ? "/clients"
             : has("supervisor")
-              ? "/orders"
+              ? "/actuary-management"
               : has("manage_accounts")
                 ? "/admin/accounts"
                 : has("manage_loans")
