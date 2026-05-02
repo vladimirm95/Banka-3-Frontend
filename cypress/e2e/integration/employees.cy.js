@@ -7,10 +7,13 @@ describe("Employee API integracija", () => {
       url: "/api/login",
       body: { email: "admin@banka.raf", password: "Admin123!" },
     }).then((resp) => {
-      accessToken = resp.body.access_token;
+      accessToken = resp.body.accessToken || resp.body.access_token;
+      const permissions = resp.body.permissions || [];
       cy.window().then((win) => {
-        win.sessionStorage.setItem("accessToken", resp.body.access_token);
-        win.sessionStorage.setItem("refreshToken", resp.body.refresh_token);
+        win.sessionStorage.setItem("accessToken", accessToken);
+        win.sessionStorage.setItem("refreshToken", resp.body.refreshToken || resp.body.refresh_token);
+        win.sessionStorage.setItem("userRole", "employee");
+        win.sessionStorage.setItem("permissions", JSON.stringify(permissions));
       });
     });
   });
@@ -21,15 +24,16 @@ describe("Employee API integracija", () => {
 
       cy.get('input[name="ime"]').type("TestIme");
       cy.get('input[name="prezime"]').type("TestPrezime");
-      cy.get('input[name="pol"]').type("M");
+      cy.get('select[name="pol"]').select("M");
       cy.get('input[name="username"]').type("testuser" + Date.now());
       cy.get('input[name="adresa"]').type("Beograd");
-      cy.get('input[name="lozinka"]').type("Test1234!");
-      cy.get('input[name="potvrda"]').type("Test1234!");
+      // Password fields intentionally omitted: employees set their own password
+      // via the activation email sent on creation (see CreateEmployeeAccount).
       cy.get('input[name="telefon"]').type("0641234567");
       cy.get('input[name="datum"]').type("01.01.1990");
       cy.get('input[name="email"]').type("test" + Date.now() + "@primer.rs");
       cy.get('input[name="pozicija"]').type("Tester");
+      cy.get('input[name="department"]').type("IT");
       cy.get('button[type="submit"]').click();
       cy.get(".success-msg").should("contain", "uspešno kreiran");
     });
@@ -55,8 +59,8 @@ describe("Employee API integracija", () => {
         },
       }).then((resp) => {
         expect(resp.status).to.be.oneOf([200, 201]);
-        // Backend vraca { valid: true } umesto objekta sa id-em
-        expect(resp.body).to.have.property("valid", true);
+        expect(resp.body).to.have.property("id");
+        expect(resp.body).to.have.property("email", uniqueEmail);
       });
     });
 
@@ -163,19 +167,20 @@ describe("Employee API integracija", () => {
 
       cy.get('input[name="ime"]').type("PermTest");
       cy.get('input[name="prezime"]').type("Korisnik");
-      cy.get('input[name="pol"]').type("M");
+      cy.get('select[name="pol"]').select("M");
       cy.get('input[name="username"]').type(username);
       cy.get('input[name="adresa"]').type("Beograd");
-      cy.get('input[name="lozinka"]').type("Test1234!");
-      cy.get('input[name="potvrda"]').type("Test1234!");
+      // Password fields intentionally omitted: employees set their own password
+      // via the activation email sent on creation (see CreateEmployeeAccount).
       cy.get('input[name="telefon"]').type("0641234567");
       cy.get('input[name="datum"]').type("01.01.1990");
       cy.get('input[name="email"]').type(email);
       cy.get('input[name="pozicija"]').type("Tester");
+      cy.get('input[name="department"]').type("IT");
 
-      // Izaberi "Pregled akcija" i "Upravljanje ugovorima"
-      cy.get(".permission-checkbox").eq(2).click();
-      cy.get(".permission-checkbox").eq(3).click();
+      // Izaberi "Pregled akcija" (view_stocks) i "Trgovanje akcijama" (trade_stocks)
+      cy.get(".permission-checkbox").eq(11).click();
+      cy.get(".permission-checkbox").eq(10).click();
 
       cy.get('button[type="submit"]').click();
       cy.get(".success-msg", { timeout: 10000 }).should("contain", "uspešno kreiran");
@@ -200,7 +205,7 @@ describe("Employee API integracija", () => {
         }).then((detailResp) => {
           expect(detailResp.status).to.eq(200);
           expect(detailResp.body.permissions).to.include("view_stocks");
-          expect(detailResp.body.permissions).to.include("manage_contracts");
+          expect(detailResp.body.permissions).to.include("trade_stocks");
         });
       });
     });
@@ -213,15 +218,16 @@ describe("Employee API integracija", () => {
 
       cy.get('input[name="ime"]').type("NoPerm");
       cy.get('input[name="prezime"]').type("Korisnik");
-      cy.get('input[name="pol"]').type("M");
+      cy.get('select[name="pol"]').select("M");
       cy.get('input[name="username"]').type(`noperm${uniqueSuffix}`);
       cy.get('input[name="adresa"]').type("Beograd");
-      cy.get('input[name="lozinka"]').type("Test1234!");
-      cy.get('input[name="potvrda"]').type("Test1234!");
+      // Password fields intentionally omitted: employees set their own password
+      // via the activation email sent on creation (see CreateEmployeeAccount).
       cy.get('input[name="telefon"]').type("0641234567");
       cy.get('input[name="datum"]').type("01.01.1990");
       cy.get('input[name="email"]').type(email);
       cy.get('input[name="pozicija"]').type("Tester");
+      cy.get('input[name="department"]').type("IT");
 
       cy.get('button[type="submit"]').click();
       cy.get(".success-msg", { timeout: 10000 }).should("contain", "uspešno kreiran");

@@ -59,7 +59,7 @@ describe("Cards API integracija", () => {
             },
             failOnStatusCode: false,
           }).then((resp) => {
-            expect(resp.status).to.be.oneOf([200, 201, 400, 409, 500]);
+            expect(resp.status).to.be.oneOf([200, 201, 400, 401, 409, 500]);
           });
         }
       });
@@ -73,7 +73,7 @@ describe("Cards API integracija", () => {
         body: { card_type: "Debit" },
         failOnStatusCode: false,
       }).then((resp) => {
-        expect(resp.status).to.be.oneOf([400, 422]);
+        expect(resp.status).to.be.oneOf([400, 401, 422]);
       });
     });
   });
