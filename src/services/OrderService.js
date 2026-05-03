@@ -1,28 +1,9 @@
-// Mock order service — simulira backend
+import api from "./api";
 
-export const createOrder = (order) => {
-  return new Promise((resolve, reject) => {
-
-    console.log("Sending order:", order)
-
-    setTimeout(() => {
-
-      if (!order || !order.quantity || order.quantity <= 0) {
-        reject({
-          status: "ERROR",
-          message: "Invalid order data"
-        })
-        return
-      }
-
-      resolve({
-        status: "SUCCESS",
-        orderId: Math.floor(Math.random() * 100000),
-        executedPrice: order.price,
-        total: order.quantity * order.price,
-        timestamp: new Date().toISOString()
-      })
-
-    }, 700)
-  })
+// POST /api/orders — backend expects { account_number, order_type, direction,
+// quantity, listing_id|option_id|forex_pair_id, limit_price, stop_price,
+// all_or_none, margin }. Monetary fields are int64 cents.
+export async function createOrder(payload) {
+  const { data } = await api.post("/orders", payload);
+  return data;
 }
