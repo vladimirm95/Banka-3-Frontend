@@ -40,8 +40,7 @@ function TaxDashboardPage() {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         (item.firstName || "").toLowerCase().includes(searchLower) ||
-        (item.lastName || "").toLowerCase().includes(searchLower) ||
-        (item.email || "").toLowerCase().includes(searchLower);
+        (item.lastName || "").toLowerCase().includes(searchLower);
 
       const matchesRole = !filterRole || item.role === filterRole;
 
@@ -134,7 +133,7 @@ function TaxDashboardPage() {
                 </span>
                 <input
                   className="search"
-                  placeholder="Pretraga po imenu, prezimenu ili email-u"
+                  placeholder="Pretraga po imenu ili prezimenu"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -175,7 +174,6 @@ function TaxDashboardPage() {
                     <tr>
                       <th>Ime</th>
                       <th>Prezime</th>
-                      <th>Email</th>
                       <th>Tip</th>
                       <th className="amount-header">Iznos poreza (RSD)</th>
                     </tr>
@@ -185,7 +183,6 @@ function TaxDashboardPage() {
                       <tr key={item.id}>
                         <td>{item.firstName}</td>
                         <td>{item.lastName}</td>
-                        <td className="email-cell">{item.email}</td>
                         <td>
                           <span className={`role-badge role-${item.role}`}>
                             {roleLabel[item.role] || item.role}
