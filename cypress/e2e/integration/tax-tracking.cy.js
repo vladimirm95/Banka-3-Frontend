@@ -2,11 +2,7 @@
 // Real-backend integration tests against TaxPage (/tax) and the underlying
 // /tax/debts and /tax/run endpoints (services/bank/internal/tax/*).
 
-// TODO: realign for main's TaxDashboardPage at /tax. This branch dropped
-// its TaxPage in favor of #181's TaxDashboardPage. Selectors and routes
-// match neither. Skipped until the spec is rewritten against the team's
-// component.
-describe.skip("Porez tracking — #74–81", () => {
+describe("Porez tracking — #74–81", () => {
   before(() => {
     cy.task("db:reset", null, { timeout: 120_000 });
   });

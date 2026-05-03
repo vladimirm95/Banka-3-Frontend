@@ -1,102 +1,90 @@
-import { useEffect, useState, useMemo } from "react";
-import { getTaxData, triggerTaxCollection } from "../services/TaxService";
+import { useEffect, useMemo, useState } from "react";
+import { getTaxDebts, runTaxCollection } from "../services/TaxService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./TaxDashboardPage.css";
 
+function formatRSD(amount) {
+  return new Intl.NumberFormat("sr-RS", {
+    style: "currency",
+    currency: "RSD",
+    minimumFractionDigits: 2,
+  }).format(amount || 0);
+}
+
 function TaxDashboardPage() {
-  const [taxData, setTaxData] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState("");
+  const [debts, setDebts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // pending (form) vs applied (last submitted) — matches the spec's
+  // "type → click Pretraži" flow.
+  const [teamPending, setTeamPending] = useState("");
+  const [namePending, setNamePending] = useState("");
+  const [team, setTeam] = useState("");
+  const [name, setName] = useState("");
+
   const [collecting, setCollecting] = useState(false);
+  const [runResult, setRunResult] = useState(null);
+  const [runError, setRunError] = useState("");
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadTaxData() {
-      try {
-        const data = await getTaxData();
-        if (!controller.signal.aborted) {
-          setTaxData(data);
+    let cancelled = false;
+    setLoading(true);
+    getTaxDebts({ team, name })
+      .then((data) => {
+        if (!cancelled) {
+          setDebts(data);
+          setError("");
         }
-      } catch {
-        if (!controller.signal.aborted) {
-          setError("Greška pri učitavanju podataka o porezu.");
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    }
+      })
+      .catch(() => {
+        if (!cancelled) setError("Greška pri učitavanju podataka o porezu.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [team, name]);
 
-    loadTaxData();
-    return () => controller.abort();
-  }, []);
+  const totalUnpaid = useMemo(
+    () => debts.reduce((sum, d) => sum + (d.unpaidRsd || 0), 0),
+    [debts],
+  );
+  const totalPaid = useMemo(
+    () => debts.reduce((sum, d) => sum + (d.paidRsd || 0), 0),
+    [debts],
+  );
 
-  const filteredData = useMemo(() => {
-    return taxData.filter((item) => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        (item.firstName || "").toLowerCase().includes(searchLower) ||
-        (item.lastName || "").toLowerCase().includes(searchLower);
-
-      const matchesRole = !filterRole || item.role === filterRole;
-
-      return matchesSearch && matchesRole;
-    });
-  }, [taxData, searchTerm, filterRole]);
+  function handleSearch(e) {
+    e?.preventDefault();
+    setTeam(teamPending);
+    setName(namePending.trim());
+  }
 
   function handleResetFilters() {
-    setSearchTerm("");
-    setFilterRole("");
+    setTeamPending("");
+    setNamePending("");
+    setTeam("");
+    setName("");
   }
 
   async function handleCollectTax() {
     if (!window.confirm("Da li ste sigurni da želite da pokrenete obračun poreza?")) return;
-
     setCollecting(true);
+    setRunError("");
     try {
-      await triggerTaxCollection();
-      alert("Obračun poreza uspešno pokrenut.");
+      const res = await runTaxCollection();
+      setRunResult(res);
+      // Refresh the debts table so the post-run state is visible.
+      const fresh = await getTaxDebts({ team, name });
+      setDebts(fresh);
     } catch {
-      alert("Greška pri pokretanju obračuna poreza.");
+      setRunError("Greška pri pokretanju obračuna poreza.");
     } finally {
       setCollecting(false);
     }
-  }
-
-  function formatRSD(amount) {
-    return new Intl.NumberFormat("sr-RS", {
-      style: "currency",
-      currency: "RSD",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  }
-
-  const roleLabel = { client: "Klijent", actuary: "Aktuar" };
-
-  if (loading) {
-    return (
-      <div className="page-bg">
-        <Sidebar />
-        <div className="content-wrapper">
-          <p style={{ color: "#475569", padding: "80px 24px", textAlign: "center" }}>Učitavanje...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="page-bg">
-        <Sidebar />
-        <div className="content-wrapper">
-          <p style={{ color: "#f87171", padding: "80px 24px", textAlign: "center" }}>{error}</p>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -108,62 +96,85 @@ function TaxDashboardPage() {
           <div className="tax-topbar">
             <div className="tax-title-block">
               <p className="tax-eyebrow">PRAĆENJE POREZA</p>
-              <h1>Porez na kapitalnu dobit</h1>
+              <h1 className="tax-title">Porez tracking — kapitalna dobit</h1>
               <p className="tax-subtitle">
                 Pregled korisnika i obračunatog poreza na kapitalnu dobit.
               </p>
             </div>
+          </div>
 
+          <div className="tax-summary">
+            <div className="tax-summary-item">
+              <span className="tax-summary-label">Ukupan neplaćen porez</span>
+              <span className="tax-summary-value">{formatRSD(totalUnpaid)}</span>
+            </div>
+            <div className="tax-summary-item">
+              <span className="tax-summary-label">Ukupan plaćen porez</span>
+              <span className="tax-summary-value">{formatRSD(totalPaid)}</span>
+            </div>
+          </div>
+
+          <form className="tax-filters" onSubmit={handleSearch}>
+            <select
+              className="role-filter"
+              value={teamPending}
+              onChange={(e) => setTeamPending(e.target.value)}
+            >
+              <option value="">Svi korisnici</option>
+              <option value="client">Klijenti</option>
+              <option value="actuary">Aktuari</option>
+            </select>
+
+            <input
+              className="search"
+              placeholder="Ime ili prezime"
+              value={namePending}
+              onChange={(e) => setNamePending(e.target.value)}
+            />
+
+            <button type="submit" className="search-btn">Pretraži</button>
+            <button type="button" className="reset-btn" onClick={handleResetFilters}>
+              Reset filtera
+            </button>
+          </form>
+
+          <div className="tax-run-card">
+            <div>
+              <h3>Mesečni obračun</h3>
+              <p className="tax-run-subtitle">
+                Naplata neplaćenog poreza za sve korisnike sa dovoljnim sredstvima.
+              </p>
+            </div>
             <button
               className="collect-btn"
               onClick={handleCollectTax}
               disabled={collecting}
             >
-              {collecting ? "Obračun u toku..." : "Pokreni obračun poreza"}
+              {collecting ? "Obračun u toku..." : "Pokreni obračun"}
             </button>
           </div>
 
-          <div className="tax-toolbar">
-            <div className="toolbar-row">
-              <div className="search-wrapper">
-                <span className="search-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </span>
-                <input
-                  className="search"
-                  placeholder="Pretraga po imenu ili prezimenu"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+          {runError && <p className="tax-run-error">{runError}</p>}
+          {runResult && (
+            <div className="tax-run-result">
+              Obračun završen{runResult.period ? ` (${runResult.period})` : ""}:
+              naplaćeno <strong>{formatRSD(runResult.collectedRsd)}</strong>{" "}
+              od ukupnog duga {formatRSD(runResult.totalDebtRsd)} —{" "}
+              {runResult.rowsPaid} stavki / {runResult.accountsPaid} računa
+              ({runResult.insufficient} bez dovoljno sredstava).
             </div>
-
-            <div className="toolbar-actions">
-              <select
-                className="role-filter"
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-              >
-                <option value="">Svi korisnici</option>
-                <option value="client">Klijenti</option>
-                <option value="actuary">Aktuari</option>
-              </select>
-
-              <button className="reset-btn" onClick={handleResetFilters}>
-                Reset filtera
-              </button>
-            </div>
-          </div>
+          )}
 
           <div className="filter-info">
-            Pronađeno: <strong>{filteredData.length}</strong> / {taxData.length}{" "}
-            korisnika
+            Prikazano: <strong>{debts.length}</strong> korisnika
           </div>
 
           <div className="table-container">
-            {filteredData.length === 0 ? (
+            {loading ? (
+              <p className="no-results">Učitavanje...</p>
+            ) : error ? (
+              <p className="tax-run-error">{error}</p>
+            ) : debts.length === 0 ? (
               <div className="no-results">
                 <p>Nema korisnika koji odgovaraju vašoj pretrazi.</p>
               </div>
@@ -174,21 +185,23 @@ function TaxDashboardPage() {
                     <tr>
                       <th>Ime</th>
                       <th>Prezime</th>
+                      <th>Email / ID</th>
                       <th>Tip</th>
-                      <th className="amount-header">Iznos poreza (RSD)</th>
+                      <th className="amount-header">Plaćeno (RSD)</th>
+                      <th className="amount-header">Neplaćeno (RSD)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.firstName}</td>
-                        <td>{item.lastName}</td>
+                    {debts.map((d) => (
+                      <tr key={d.id}>
+                        <td>{d.firstName}</td>
+                        <td>{d.lastName}</td>
+                        <td className="email-cell">#{d.id}</td>
                         <td>
-                          <span className={`role-badge role-${item.role}`}>
-                            {roleLabel[item.role] || item.role}
-                          </span>
+                          <span className={`role-badge role-${d.team}`}>{d.team}</span>
                         </td>
-                        <td className="amount-cell">{formatRSD(item.taxAmount)}</td>
+                        <td className="amount-cell tax-pos">{formatRSD(d.paidRsd)}</td>
+                        <td className="amount-cell tax-neg">{formatRSD(d.unpaidRsd)}</td>
                       </tr>
                     ))}
                   </tbody>
