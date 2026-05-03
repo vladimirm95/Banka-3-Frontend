@@ -2,12 +2,10 @@
 // Real-backend integration tests against ActuariesPage (/actuaries) and the
 // underlying /actuaries REST endpoints (handlers.go:94-97).
 
-// TODO: realign for main's ActuaryManagementPage at /actuary-management.
-// This spec was written against this branch's now-dropped /actuaries page
-// (ActuariesPage with .act-* selectors). Main ships ActuaryManagementPage at
-// /actuary-management with .amp-* selectors and a different layout. Skipped
-// until the spec is rewritten against the team's component.
-describe.skip("Upravljanje aktuarima — #1–9", () => {
+// ActuaryManagementPage is mounted at both /actuary-management (team's path) and
+// /actuaries (spec path). The team's `.amp-*` visual classes carry side-by-side
+// `.act-*` test-hook classes so the spec stays stable without disturbing styling.
+describe("Upravljanje aktuarima — #1–9", () => {
   // #1: Supervizor moze da otvori portal i vidi listu agenata + filtere + akcije
   it("#1: supervizor otvara /actuaries i vidi tabelu sa filterima i akcijama", () => {
     cy.loginAs("supervisor");

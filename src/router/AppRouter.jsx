@@ -59,13 +59,14 @@ export default function AppRouter() {
           <Route path="/admin/accounts" element={<ProtectedRoute requiredRole="employee"><AccountsPage /></ProtectedRoute>} />
           <Route path="/admin/accounts/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
           <Route path="/admin/accounts/business/:accountNumber" element={<ProtectedRoute requiredRole="employee"><AdminAccountDetailsPage /></ProtectedRoute>} />
-          <Route path="/employees" element={<ProtectedRoute requiredRole="employee"><EmployeesPage /></ProtectedRoute>} />
+          <Route path="/employees" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EmployeesPage /></ProtectedRoute>} />
 
           <Route path="/clients" element={<ProtectedRoute requiredRole="employee"><ClientsPage /></ProtectedRoute>} />
           <Route path="/clients/create" element={<ProtectedRoute requiredRole="employee"><CreateClientPage /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
           <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
+          <Route path="/actuaries" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
 
         <Route path="/securities" element={<ProtectedRoute><SecuritiesPage /></ProtectedRoute>} />
         <Route path="/securities/:ticker" element={<ProtectedRoute requiredRole="employee"><SecurityDetailPage /></ProtectedRoute>} />
