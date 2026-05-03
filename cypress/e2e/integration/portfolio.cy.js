@@ -4,11 +4,10 @@ const NASDAQ_MIC = "XNAS";
 const TICKER = "MSFT";
 const BANK_USD_ACCOUNT = "333000100000000420";
 
-// TODO: realign for main's PortfolioPage. This branch dropped its own
-// /portfolio implementation in favor of #183/#184's PortfolioPage on main,
-// which uses different selectors and layout. Skipped until the spec is
-// rewritten against the team's component.
-describe.skip("Moj portfolio — #67–73", () => {
+// PortfolioPage on main was wired to the real /api/portfolio + /api/tax/me
+// endpoints in this branch. Selectors below use the .pf-* test hooks
+// alongside the team's .portfolio-* visual classes.
+describe("Moj portfolio — #67–73", () => {
   before(() => {
     cy.task("db:reset", null, { timeout: 120_000 });
   });

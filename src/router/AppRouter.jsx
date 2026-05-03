@@ -82,7 +82,7 @@ export default function AppRouter() {
           <Route path="/transfer" element={<ProtectedRoute requiredRole="client"><TransferPage /></ProtectedRoute>} />
 
           <Route path="/accounts/:accountNumber" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
-          <Route path="/portfolio" element={<ProtectedRoute requiredRole="client"><PortfolioPage /></ProtectedRoute>} />
+          <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
           <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
           <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 
