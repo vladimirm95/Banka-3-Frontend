@@ -1,175 +1,85 @@
-// za sad mock podaci
+import api from "./api";
 
-const mockSecurities = [
-  {
-    ticker: "AAPL",
-    name: "Apple Inc.",
-    type: "stock",
-    price: 150.25,
-    ask: 150.50,
-    bid: 150.00,
-    change: 2.50,
-    volume: 50000000,
-    exchange: "NASDAQ",
-    maintenanceMargin: 75.13,
-    lastRefresh: new Date().toISOString(),
-  },
-  {
-    ticker: "MSFT",
-    name: "Microsoft Corporation",
-    type: "stock",
-    price: 320.15,
-    ask: 320.50,
-    bid: 319.80,
-    change: -1.85,
-    volume: 25000000,
-    exchange: "NASDAQ",
-    maintenanceMargin: 160.08,
-    lastRefresh: new Date().toISOString(),
-  },
-  {
-    ticker: "GOOGL",
-    name: "Alphabet Inc.",
-    type: "stock",
-    price: 2800.00,
-    ask: 2801.00,
-    bid: 2799.00,
-    change: 5.25,
-    volume: 1200000,
-    exchange: "NASDAQ",
-    maintenanceMargin: 1400.00,
-    lastRefresh: new Date().toISOString(),
-  },
-  {
-    ticker: "CLJ24",
-    name: "Crude Oil Futures",
-    type: "futures",
-    price: 85.50,
-    ask: 85.75,
-    bid: 85.25,
-    change: 0.50,
-    volume: 500000,
-    exchange: "NYMEX",
-    settlementDate: "2024-12-20",
-    maintenanceMargin: 855.00,
-    lastRefresh: new Date().toISOString(),
-  },
-  {
-    ticker: "EUR/USD",
-    name: "Euro/US Dollar",
-    type: "forex",
-    price: 1.1123,
-    ask: 1.1125,
-    bid: 1.1121,
-    change: 0.0025,
-    volume: 5000000,
-    exchange: "FOREX",
-    liquidity: "High",
-    maintenanceMargin: 111.23,
-    lastRefresh: new Date().toISOString(),
-  },
-  {
-    ticker: "GBP/USD",
-    name: "British Pound/US Dollar",
-    type: "forex",
-    price: 1.2650,
-    ask: 1.2652,
-    bid: 1.2648,
-    change: -0.0010,
-    volume: 3500000,
-    exchange: "FOREX",
-    liquidity: "High",
-    maintenanceMargin: 126.50,
-    lastRefresh: new Date().toISOString(),
-  },
-];
+// Backend stores monetary values as int64 minor units (cents).
+const CENTS = 100;
 
-function simulatePriceChange(security) {
-  const changePercent = (Math.random() - 0.5) * 2; // -1% do +1%
-  const priceChange = security.price * (changePercent / 100);
+function mapListing(l) {
+  return {
+    ticker: l.ticker,
+    name: l.name,
+    type: l.security_type === "future" ? "futures" : l.security_type,
+    price: (l.price ?? 0) / CENTS,
+    ask: (l.ask_price ?? 0) / CENTS,
+    bid: (l.bid_price ?? 0) / CENTS,
+    change: (l.change ?? 0) / CENTS,
+    volume: l.volume ?? 0,
+    exchange: l.exchange_acronym || "",
+    settlementDate: l.settlement_date
+      ? new Date(l.settlement_date * 1000).toISOString().slice(0, 10)
+      : undefined,
+    maintenanceMargin: (l.maintenance_margin ?? 0) / CENTS,
+    lastRefresh: l.last_refresh
+      ? new Date(l.last_refresh * 1000).toISOString()
+      : null,
+  };
+}
+
+function mapForex(p) {
+  return {
+    ticker: p.ticker,
+    name: p.name,
+    type: "forex",
+    price: p.exchange_rate ?? 0,
+    ask: p.exchange_rate ?? 0,
+    bid: p.exchange_rate ?? 0,
+    change: 0,
+    volume: 0,
+    exchange: "FOREX",
+    liquidity: p.liquidity || "",
+    maintenanceMargin: (p.maintenance_margin ?? 0) / CENTS,
+    lastRefresh: null,
+  };
+}
+
+export async function getSecurities(type = null) {
+  const wantListings = type === null || type === "stock" || type === "futures";
+  const wantForex = type === null || type === "forex";
+
+  // Forex is employees-only at the gateway (PermissionDenied for clients).
+  // Swallow that here so a client viewing the page doesn't see a hard error.
+  const tasks = [
+    wantListings ? api.get("/listings") : Promise.resolve({ data: [] }),
+    wantForex
+      ? api.get("/forex-pairs").catch(() => ({ data: [] }))
+      : Promise.resolve({ data: [] }),
+  ];
+
+  const [listingsRes, forexRes] = await Promise.all(tasks);
+  const securities = [
+    ...(listingsRes.data || []).map(mapListing),
+    ...(forexRes.data || []).map(mapForex),
+  ];
 
   return {
-    ...security,
-    price: parseFloat((security.price + priceChange).toFixed(2)),
-    ask: parseFloat((security.ask + priceChange).toFixed(2)),
-    bid: parseFloat((security.bid + priceChange).toFixed(2)),
-    change: parseFloat(priceChange.toFixed(2)),
+    data: securities,
     lastRefresh: new Date().toISOString(),
+    timestamp: new Date().toLocaleString("sr-RS"),
   };
 }
 
 export async function refreshAllSecurities() {
-  try {
-    console.log("📤 Mock: Osvežavanje sve hartije od vrednosti...");
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // simuliranje promene cena
-    const refreshedSecurities = mockSecurities.map(security => 
-      simulatePriceChange(security)
-    );
-    console.log("✅ Mock: Hartije osvežene:", refreshedSecurities);
-
-    return {
-      data: refreshedSecurities,
-      lastRefresh: new Date().toISOString(),
-      timestamp: new Date().toLocaleString("sr-RS"),
-    };
-  } catch (error) {
-    console.error("❌ Mock: Greška pri osvežavanju:", error);
-    throw error;
-  }
+  return getSecurities();
 }
 
 export async function refreshSecurity(ticker) {
-  try {
-    console.log(`📤 Mock: Osvežavanje ${ticker}...`);
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const security = mockSecurities.find(s => s.ticker === ticker);
-    
-    if (!security) {
-      throw new Error(`Hartija ${ticker} nije pronađena`);
-    }
-
-    const refreshedSecurity = simulatePriceChange(security);
-    console.log(`✅ Mock: ${ticker} osvežena:`, refreshedSecurity);
-
-    return {
-      data: refreshedSecurity,
-      lastRefresh: new Date().toISOString(),
-      timestamp: new Date().toLocaleString("sr-RS"),
-    };
-  } catch (error) {
-    console.error(`❌ Mock: Greška pri osvežavanju ${ticker}:`, error);
-    throw error;
+  const all = await getSecurities();
+  const security = all.data.find((s) => s.ticker === ticker);
+  if (!security) {
+    throw new Error(`Hartija ${ticker} nije pronađena`);
   }
-}
-
-export async function getSecurities(type = null) {
-  try {
-    console.log(`📤 Mock: Dohvatanje hartije...${type ? ` (tip: ${type})` : ""}`);
-    
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const securities = type 
-      ? mockSecurities.filter(s => s.type === type)
-      : mockSecurities;
-
-    console.log("✅ Mock: Hartije dohvaćene:", securities);
-
-    return {
-      data: securities,
-      lastRefresh: new Date().toISOString(),
-      timestamp: new Date().toLocaleString("sr-RS"),
-    };
-  } catch (error) {
-    console.error("❌ Mock: Greška pri dohvatanju:", error);
-    throw error;
-  }
-}
-
-export function calculateInitialMarginCost(maintenanceMargin) {
-  return parseFloat((maintenanceMargin * 1.1).toFixed(2));
+  return {
+    data: security,
+    lastRefresh: all.lastRefresh,
+    timestamp: all.timestamp,
+  };
 }
