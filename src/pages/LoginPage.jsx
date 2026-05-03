@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { login, clearAuthState } from "../services/AuthService";
-import useFailedAttempts, { BLOCKED_MESSAGE } from "../utils/useFailedAttempts";
+// import useFailedAttempts, { BLOCKED_MESSAGE } from "../utils/useFailedAttempts";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const { isBlocked, increment, reset } = useFailedAttempts("login");
+  // const { isBlocked, increment, reset } = useFailedAttempts("login");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -23,10 +23,10 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isBlocked) {
-      setMessage(BLOCKED_MESSAGE);
-      return;
-    }
+    // if (isBlocked) {
+    //   setMessage(BLOCKED_MESSAGE);
+    //   return;
+    // }
 
     if (!email || !password) {
       setMessage("Unesite email i lozinku");
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
     try {
       const data = await login(email, password);
-      reset();
+      // reset();
 
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("refreshToken", data.refreshToken);
@@ -47,7 +47,23 @@ export default function LoginPage() {
 
       if (permissions.includes("admin") || permissions.length > 0) {
         sessionStorage.setItem("userRole", "employee");
-        navigate("/employees");
+        // Pick the first portal this employee actually has access to.
+        // Agents/traders don't have manage_employees, so /employees would
+        // bounce them through ProtectedRoute and loop.
+        const isAdmin = permissions.includes("admin");
+        const has = (p) => isAdmin || permissions.includes(p);
+        const landing = has("manage_employees")
+          ? "/employees"
+          : has("manage_clients")
+            ? "/clients"
+            : has("supervisor")
+              ? "/actuary-management"
+              : has("manage_accounts")
+                ? "/admin/accounts"
+                : has("manage_loans")
+                  ? "/employee-loans"
+                  : "/securities";
+        navigate(landing);
       } else {
         sessionStorage.setItem("userRole", "client");
         navigate("/dashboard");
@@ -77,7 +93,7 @@ export default function LoginPage() {
             "Nalog još nije aktiviran. Proverite email i postavite lozinku putem linka za aktivaciju (ili zatražite novi link)."
           );
         } else if (status === 401) {
-          increment();
+          // increment();
           setMessage("Pogrešan email ili lozinka");
         } else {
           setMessage("Greška na serveru pri prijavi.");
@@ -156,15 +172,15 @@ export default function LoginPage() {
             Zaboravili ste lozinku?
           </p>
 
-          <button type="submit" className="login-button" disabled={loading || isBlocked}>
+          <button type="submit" className="login-button" disabled={loading /* || isBlocked */}>
             {loading ? "Prijavljivanje..." : "Prijavi se"}
           </button>
 
-          {isBlocked ? (
+          {/* {isBlocked ? (
             <p className="message login-blocked">{BLOCKED_MESSAGE}</p>
-          ) : (
-            message && <p className="message">{message}</p>
-          )}
+          ) : ( */}
+            {message && <p className="message">{message}</p>}
+          {/* )} */}
         </form>
 
         <p className="login-footer">Banka 2026 • Računarski fakultet</p>

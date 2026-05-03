@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getExchangeRates, updateExchangeStatus } from "../services/ExchangeService";
+import { getExchanges, setExchangeOpenOverride } from "../services/ExchangeService";
 import Sidebar from "../components/Sidebar.jsx";
 import "./BerzaPage.css";
 
@@ -10,19 +10,20 @@ export default function BerzaPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [updatingId, setUpdatingId] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
             try {
-                const data = await getExchangeRates();
+                const data = await getExchanges();
                 if (!cancelled) {
-                    setExchanges(data);
+                    setExchanges(Array.isArray(data) ? data : []);
                     setError("");
                 }
             } catch {
                 if (!cancelled) {
-                    setError("Greška pri učitavanju podataka o burzama.");
+                    setError("Greška pri učitavanju podataka o berzama.");
                 }
             } finally {
                 if (!cancelled) {
@@ -34,23 +35,23 @@ export default function BerzaPage() {
         return () => { cancelled = true; };
     }, []);
 
-    const handleToggleStatus = async (exchangeId, currentStatus) => {
+    const handleToggleOverride = async (exchange) => {
+        const next = !exchange.open_override;
+        setUpdatingId(exchange.id);
         try {
-            const newStatus = !currentStatus;
-            await updateExchangeStatus(exchangeId, newStatus);
-            
-            const updatedExchanges = exchanges.map(ex =>
-                ex.id === exchangeId ? { ...ex, isOpen: newStatus } : ex
+            const updated = await setExchangeOpenOverride(exchange.id, next);
+            setExchanges((prev) =>
+                prev.map((ex) => (ex.id === exchange.id ? { ...ex, ...updated } : ex))
             );
-            setExchanges(updatedExchanges);
-            
-            const exchange = updatedExchanges.find(ex => ex.id === exchangeId);
             setSuccess(
-                `${exchange.naziv} je ${newStatus ? "otvorena" : "zatvorena"}.`
+                `${exchange.name || exchange.acronym} je ${next ? "prinudno otvorena" : "vraćena na redovno radno vreme"}.`
             );
+            setError("");
             setTimeout(() => setSuccess(""), 3000);
         } catch {
-            setError("Greška pri izmjeni statusa burze.");
+            setError("Greška pri izmeni statusa berze.");
+        } finally {
+            setUpdatingId(null);
         }
     };
 
@@ -65,7 +66,7 @@ export default function BerzaPage() {
                                 <path d="M15 18l-6-6 6-6" />
                             </svg>
                         </button>
-                        <h1 className="berza-title">Burze</h1>
+                        <h1 className="berza-title">Berze</h1>
                     </div>
                     <p className="berza-loading">Učitavanje...</p>
                 </div>
@@ -84,7 +85,7 @@ export default function BerzaPage() {
                                 <path d="M15 18l-6-6 6-6" />
                             </svg>
                         </button>
-                        <h1 className="berza-title">Burze</h1>
+                        <h1 className="berza-title">Berze</h1>
                     </div>
                     <p className="berza-error">{error}</p>
                 </div>
@@ -97,48 +98,59 @@ export default function BerzaPage() {
             <div className="berza-content">
                 <Sidebar />
 
-                {/* ── HEADER ── */}
                 <div className="berza-header">
-                    <button className="berza-back-btn" onClick={() => navigate("/dashboard")}>
+                    <button className="berza-back-btn" onClick={() => navigate("/employees")}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M15 18l-6-6 6-6" />
                         </svg>
                     </button>
-                    <h1 className="berza-title">Burze</h1>
+                    <h1 className="berza-title">Berze</h1>
                 </div>
 
-                {/* ── MESSAGES ── */}
                 {success && <p className="berza-msg berza-msg--success">{success}</p>}
                 {error && <p className="berza-msg berza-msg--error">{error}</p>}
 
-                {/* ── EXCHANGES LIST ── */}
                 <div className="berza-list">
-                    {exchanges.map(exchange => (
+                    {exchanges.map((exchange) => (
                         <div key={exchange.id} className="berza-card">
                             <div className="berza-card-header">
-                                <h2 className="berza-exchange-name">{exchange.naziv}</h2>
-                                <div className={`berza-status ${exchange.isOpen ? "berza-status--open" : "berza-status--closed"}`}>
-                                    {exchange.isOpen ? "Otvorena" : "Zatvorena"}
+                                <h2 className="berza-exchange-name">
+                                    {exchange.name}
+                                    {exchange.acronym ? ` (${exchange.acronym})` : ""}
+                                </h2>
+                                <div className={`berza-status ${exchange.open_override ? "berza-status--open" : "berza-status--closed"}`}>
+                                    {exchange.open_override ? "Override: ON" : "Override: OFF"}
                                 </div>
                             </div>
 
                             <div className="berza-card-info">
                                 <div className="berza-info-item">
+                                    <label className="berza-info-label">MIC kod:</label>
+                                    <span className="berza-info-value">{exchange.mic_code || "—"}</span>
+                                </div>
+                                <div className="berza-info-item">
                                     <label className="berza-info-label">Valuta:</label>
-                                    <span className="berza-info-value">{exchange.valuta}</span>
+                                    <span className="berza-info-value">{exchange.currency || "—"}</span>
                                 </div>
                                 <div className="berza-info-item">
                                     <label className="berza-info-label">Vremenska zona:</label>
-                                    <span className="berza-info-value">{exchange.timezone}</span>
+                                    <span className="berza-info-value">{exchange.time_zone_offset || "—"}</span>
+                                </div>
+                                <div className="berza-info-item">
+                                    <label className="berza-info-label">Radno vreme:</label>
+                                    <span className="berza-info-value">
+                                        {exchange.open_time || "—"} – {exchange.close_time || "—"}
+                                    </span>
                                 </div>
                             </div>
 
                             <div className="berza-card-toggle">
-                                <label className="berza-toggle-label">Status za testiranje:</label>
+                                <label className="berza-toggle-label">Override (testiranje):</label>
                                 <button
-                                    className={`berza-toggle-btn ${exchange.isOpen ? "berza-toggle-btn--open" : ""}`}
-                                    onClick={() => handleToggleStatus(exchange.id, exchange.isOpen)}
-                                    title={`Klikni da promijeniš status u ${exchange.isOpen ? "zatvorena" : "otvorena"}`}
+                                    className={`berza-toggle-btn ${exchange.open_override ? "berza-toggle-btn--open" : ""}`}
+                                    onClick={() => handleToggleOverride(exchange)}
+                                    disabled={updatingId === exchange.id}
+                                    title={`Klikni da ${exchange.open_override ? "isključiš" : "uključiš"} prinudno otvaranje`}
                                 >
                                     <span className="berza-toggle-circle"></span>
                                 </button>

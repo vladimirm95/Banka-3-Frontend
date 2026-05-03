@@ -1,6 +1,10 @@
 describe("Recipients API integracija", () => {
   let accessToken;
 
+  before(() => {
+    cy.task("db:reset", null, { timeout: 120_000 });
+  });
+
   beforeEach(() => {
     cy.request({
       method: "POST",

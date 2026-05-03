@@ -7,7 +7,7 @@ describe("Client API integracija", () => {
       url: "/api/login",
       body: { email: "admin@banka.raf", password: "Admin123!" },
     }).then((resp) => {
-      accessToken = resp.body.access_token;
+      accessToken = resp.body.accessToken || resp.body.access_token;
     });
   });
 

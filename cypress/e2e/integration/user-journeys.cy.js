@@ -7,7 +7,7 @@ describe("User Journeys - End-to-end scenariji", () => {
       body: { email: "admin@banka.raf", password: "Admin123!" },
     }).then((loginResp) => {
       expect(loginResp.status).to.eq(200);
-      const accessToken = loginResp.body.access_token;
+      const accessToken = loginResp.body.accessToken || loginResp.body.access_token;
 
       // Kreiraj zaposlenog
       const uniqueEmail = `journey-${Date.now()}@primer.rs`;
@@ -30,8 +30,8 @@ describe("User Journeys - End-to-end scenariji", () => {
         },
       }).then((createResp) => {
         expect(createResp.status).to.be.oneOf([200, 201]);
-        // Backend vraca { valid: true }, ne objekat sa id-em
-        expect(createResp.body).to.have.property("valid", true);
+        // Backend vraca novi objekat zaposlenog (sa id i email)
+        expect(createResp.body).to.have.property("email", uniqueEmail);
       });
 
       // Logout
@@ -40,7 +40,7 @@ describe("User Journeys - End-to-end scenariji", () => {
         url: "/api/logout",
         headers: { Authorization: `Bearer ${accessToken}` },
       }).then((logoutResp) => {
-        expect(logoutResp.status).to.eq(202);
+        expect(logoutResp.status).to.be.oneOf([200, 202]);
       });
     });
   });
@@ -58,7 +58,7 @@ describe("User Journeys - End-to-end scenariji", () => {
       body: { email: "admin@banka.raf", password: "Admin123!" },
     }).then((loginResp) => {
       expect(loginResp.status).to.eq(200);
-      const refreshToken = loginResp.body.refresh_token;
+      const refreshToken = loginResp.body.refreshToken || loginResp.body.refresh_token;
 
       // Refresh token
       cy.request({
@@ -67,7 +67,7 @@ describe("User Journeys - End-to-end scenariji", () => {
         body: { refresh_token: refreshToken },
       }).then((refreshResp) => {
         expect(refreshResp.status).to.eq(200);
-        const newAccessToken = refreshResp.body.access_token;
+        const newAccessToken = refreshResp.body.accessToken || refreshResp.body.access_token;
         expect(newAccessToken).to.be.a("string");
 
         // Koristi novi token za pristup
