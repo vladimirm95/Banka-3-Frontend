@@ -12,6 +12,9 @@ const TICKER = "MSFT";
 const PAST_FUTURE = "CLZ25"; // settlement 2025-12-19, in the past for "today" 2026-04-30
 const BANK_USD_ACCOUNT = "333000100000000420";
 const BANK_RSD_ACCOUNT = "333000100000000110";
+// NOK account exists in seed but NOK has no exchange_rates row — exercises
+// the unsupported-currency rejection path for #42.
+const BANK_NOK_ACCOUNT = "333000100000000920";
 
 describe("Kreiranje naloga — #26–47", () => {
   before(() => {
@@ -262,16 +265,23 @@ describe("Kreiranje naloga — #26–47", () => {
     });
   });
 
-  // #42 Nevalidna valuta racuna — spec describes an account in an "unsupported"
-  // currency. The seed (services/bank/migrations/seed.sql) provisions accounts
-  // in RSD/EUR/CHF/USD/GBP/JPY/CAD/AUD with exchange rates for all eight, so
-  // the unsupported-currency path is unreachable without seed changes. Skipping
-  // as out-of-spec rather than asserting a false-positive proxy. The previous
-  // "nonexistent account_number" assertion is structurally identical to #28
-  // (NotFound on unknown id) and was removed to avoid double-counting coverage.
-  it.skip("#42: nepodržana valuta računa odbacuje order", () => {
-    // TODO: requires seed extension with an account in a currency that has no
-    // exchange_rates row. Re-enable then.
+  // #42 Nevalidna valuta racuna — bank NOK account paired with a NOK currency
+  // that has no exchange_rates row. server.go's cross-currency rate lookup
+  // returns FailedPrecondition (mapped to HTTP 409 by the gateway) with a
+  // message about the unsupported currency.
+  it("#42: nepodržana valuta računa odbacuje order", () => {
+    cy.findListingByTicker(TICKER).then((l) => {
+      cy.createOrderApi({
+        account_number: BANK_NOK_ACCOUNT,
+        order_type: "market",
+        direction: "buy",
+        quantity: 1,
+        listing_id: l.id,
+      }).then((resp) => {
+        expect(resp.status, "rejected as 4xx, not 5xx").to.be.gte(400).and.lt(500);
+        expect(String(resp.body || ""), "error mentions the unsupported currency").to.match(/NOK|valuta/i);
+      });
+    });
   });
 
   // #43 Nedovoljno sredstava — koristim klijenta sa malim USD balansom (Marko's USD has 20000 = $200, traziti veliku kolicinu)
