@@ -128,14 +128,14 @@ export default function CreateOrderPage() {
     return security?.price || 0;
   }, [orderType, limitPrice, stopPrice, security]);
 
-  // The detail endpoint doesn't surface contract_size yet; default to 1 for
-  // stocks/forex and rely on the backend's authoritative computation. This
-  // matches the cy createOrderApi tests that pass `quantity` directly.
-  const contractSize = 1;
+  // contractSize comes from the listing detail (1 for stocks/forex, lot size
+  // for futures). Without it, the "approximate total" estimate displayed below
+  // is off by a factor of contract_size on futures orders.
+  const contractSize = security?.contractSize && security.contractSize > 0 ? security.contractSize : 1;
 
   const approxTotalMajor = useMemo(() => {
     return Math.max(0, pricePerUnit * Number(quantity || 0) * contractSize);
-  }, [pricePerUnit, quantity]);
+  }, [pricePerUnit, quantity, contractSize]);
 
   const commissionMajor = commissionFor(orderType, approxTotalMajor, isEmployee);
   const grandTotalMajor = approxTotalMajor + commissionMajor;
@@ -500,6 +500,12 @@ export default function CreateOrderPage() {
               <div><dt>Smer</dt><dd>{directionLabel}</dd></div>
               <div><dt>Tip</dt><dd>{orderTypeLabel}</dd></div>
               <div><dt>Količina</dt><dd>{Number(quantity)}</dd></div>
+              {contractSize > 1 && (
+                <>
+                  <div><dt>Veličina ugovora</dt><dd>{contractSize}</dd></div>
+                  <div><dt>Broj jedinica</dt><dd>{Number(quantity) * contractSize}</dd></div>
+                </>
+              )}
               {showLimitField && (
                 <div><dt>Limit</dt><dd>{formatCurrency(Number(limitPrice) || 0, securityCurrency)}</dd></div>
               )}
