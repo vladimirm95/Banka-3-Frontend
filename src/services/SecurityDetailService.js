@@ -43,6 +43,11 @@ function mapListingToDetail(l) {
     change: (l.change ?? 0) / CENTS,
     volume: l.volume ?? 0,
     exchange: l.exchange_acronym || "",
+    // contract_size is 1 for stocks and the future's lot size for futures.
+    // CreateOrderPage needs it so the "approximate total" estimate matches
+    // backend pricing, which is contract_size × price × quantity.
+    contractSize: l.contract_size && l.contract_size > 0 ? l.contract_size : 1,
+    settlementDate: l.settlement_date_unix || null,
   };
 }
 
