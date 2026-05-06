@@ -62,9 +62,9 @@ describe("Upravljanje aktuarima — #1–9", () => {
     });
   });
 
-  // #4: Negativan limit odbacuje frontend (val < 0 -> alert).
-  // Main's page accepts 0; we test the actually-rejected path (negatives).
-  it("#4: negativan limit prikazuje validacionu poruku", () => {
+  // #4: Nepozitivan limit (negativan ili 0) odbacuje frontend pre slanja.
+  // Spec §S4: "limit must be > 0", a ne >= 0.
+  it("#4: nepozitivan limit prikazuje validacionu poruku", () => {
     const alerts = captureAlerts();
     cy.loginAs("supervisor");
     cy.visit(PAGE);
@@ -74,11 +74,20 @@ describe("Upravljanje aktuarima — #1–9", () => {
       cy.get(".amp-btn-save").click();
     });
     cy.wrap(alerts).should((arr) => {
-      expect(arr.join(" ")).to.match(/validnu pozitivnu/i);
+      expect(arr.join(" ")).to.match(/veći od 0/i);
     });
     cy.contains(".amp-table tbody tr", AGENT_EMAIL)
       .find(".amp-edit-input")
       .should("exist");
+
+    // Same rejection for limit = 0 (the path main allowed before this fix).
+    cy.contains(".amp-table tbody tr", AGENT_EMAIL).within(() => {
+      cy.get(".amp-edit-input").clear().type("0");
+      cy.get(".amp-btn-save").click();
+    });
+    cy.wrap(alerts).should((arr) => {
+      expect(arr.filter((m) => /veći od 0/i.test(m)).length).to.be.greaterThan(1);
+    });
   });
 
   // #5: Reset usedLimit kroz modal — modal/.amp-modal + "Potvrdi reset".

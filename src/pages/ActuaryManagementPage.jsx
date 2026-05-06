@@ -60,8 +60,20 @@ export default function ActuaryManagementPage() {
 
     const handleLimitSave = async (id) => {
         const val = parseFloat(editValue);
-        if (isNaN(val) || val < 0) {
-            alert("Molimo unesite validnu pozitivnu vrednost.");
+        if (isNaN(val) || val <= 0) {
+            alert("Limit mora biti veći od 0.");
+            return;
+        }
+
+        // Spec §S3: novi limit ne sme biti manji od trenutno iskorišćenog —
+        // u suprotnom usedLimit > limit, agent zauvek pada na approval gate.
+        // Backend takođe odbija ovo, ali UI ne sme dozvoliti round-trip ako
+        // možemo da uporedimo lokalno.
+        const target = agents.find((a) => a.id === id);
+        if (target && val < target.usedLimit) {
+            alert(
+                `Novi limit (${formatCurrency(val)}) ne može biti manji od trenutno iskorišćenog (${formatCurrency(target.usedLimit)}). Resetujte iskorišćeni limit pre izmene.`
+            );
             return;
         }
 
