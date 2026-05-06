@@ -36,6 +36,12 @@ export default defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
     video: false,
+    // The /tax page occasionally renders blank on the first cy.visit after a
+    // db:reset under full-suite ordering against `npm run dev` — Vite HMR's
+    // socket reconnect after the AUT iframe reset sporadically wedges the
+    // first navigation. One retry recovers; runMode-only so isolated runs
+    // stay deterministic.
+    retries: { runMode: 2, openMode: 0 },
   },
 
   env: {

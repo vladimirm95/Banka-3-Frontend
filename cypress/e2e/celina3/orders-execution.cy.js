@@ -42,11 +42,23 @@ describe("Izvršavanje naloga — #59–62", () => {
     });
   });
 
-  // #60 AON — ne izvrsava se bez pune kolicine. Hard to make deterministic
-  // because we'd need to set listing daily volume to a specific small value.
-  // We assert: AON BUY for huge quantity stays in "approved" (not done) for the
-  // duration of a short observation window.
-  it("#60: AON BUY za ogromnu kolicinu ne izvrsava se odjednom", () => {
+  // #60 AON — ne izvršava se bez pune dostupne količine. The executor
+  // (executor.go:401–413) implements AON as commit-the-full-quantity-and-
+  // rollback-on-debit-failure: the block path requires a balance shortfall at
+  // fill time. With seeded bank account funds and no orderbook depth model,
+  // we can't deterministically force that rollback in CI. Skipping rather
+  // than asserting qty=1 always fills (tautology — old assertion gave
+  // false-positive coverage on this scenario).
+  it.skip("#60: AON BUY čeka punu količinu pre izvršavanja", () => {
+    // TODO: re-enable when the seed (or a test-only knob) can simulate
+    // notional liquidity below the order quantity, OR when orders-execution
+    // exposes per-order transaction counts so we can assert "0 partial fills".
+  });
+
+  // #61 AON happy path — when the full quantity is available, AON fills
+  // atomically (single tick). We assert: order reaches `done`, remaining
+  // hits 0, and the placement metadata round-trips (`all_or_none=true`).
+  it("#61: AON BUY sa dostupnom količinom izvršava se atomično", () => {
     cy.loginAs("agent");
     cy.findListingByTicker(TICKER).then((l) => {
       cy.createOrderApi({
@@ -57,7 +69,7 @@ describe("Izvršavanje naloga — #59–62", () => {
         listing_id: l.id,
         all_or_none: true,
       }).then((r) => {
-        if (r.status >= 400) return; // limit may reject — that's still fine
+        if (r.status >= 400) return;
         const orderId = r.body.order_id;
         cy.loginAs("supervisor");
         cy.window().then((win) => {
@@ -68,18 +80,12 @@ describe("Izvršavanje naloga — #59–62", () => {
             headers: { Authorization: `Bearer ${token}` },
           });
         });
-        // For tiny qty=1 AON, this *will* fill quickly. We just assert that
-        // when it does fill, it fills in one transaction (txn count == 1).
         cy.waitForOrderStatus(orderId, "done", { timeoutMs: 60_000 }).then((o) => {
-          expect(o.remaining_portions).to.eq(0);
+          expect(o.remaining_portions, "AON fills to zero in one shot").to.eq(0);
+          expect(o.all_or_none, "AON flag persisted").to.eq(true);
         });
       });
     });
-  });
-
-  // #61 AON happy path — covered by #60 above for qty=1.
-  it("#61: AON sa kompletno raspolozivom kolicinom izvrsava se u celosti", () => {
-    // Same path as #60 — qty 1 AON fills atomically. Asserted there.
   });
 
   // #62 Stop-Limit prelazi u Limit pri trigger-u — bez vremenske kontrole tesko za testirati.

@@ -22,9 +22,14 @@ describe("Porez tracking — #74–81", () => {
   // #75: Klijent nema pristup — /tax requires permission "supervisor"
   // (router/AppRouter.jsx:87). ProtectedRoute should redirect away.
   it("#75: klijent ne moze da otvori /tax", () => {
+    // Explicit sessionStorage reset before client login: under full-suite
+    // ordering #74's supervisor session occasionally bled through and
+    // /tax rendered blank. Cookies & localStorage are NOT cleared — the
+    // app uses neither, and clearing them upsets Cypress' own intercepts.
+    cy.clearAllSessionStorage();
     cy.loginAs("client");
     cy.visit("/tax", { failOnStatusCode: false });
-    cy.url({ timeout: 5000 }).should("not.include", "/tax");
+    cy.location("pathname", { timeout: 10000 }).should("not.eq", "/tax");
     cy.get(".tax-title").should("not.exist");
   });
 
@@ -32,14 +37,18 @@ describe("Porez tracking — #74–81", () => {
   // "client" / "actuary"; getTaxDebts forwards as ?team=...
   it("#76: filtriranje po tipu 'klijent' šalje ?team=client i menja listu", () => {
     cy.loginAs("supervisor");
-    cy.intercept("GET", "**/api/tax/debts*").as("debts");
+    // Two intercepts: a generic one to drain the initial load(s), and a
+    // query-param-specific one that ONLY matches the filtered request.
+    // Under React.StrictMode + `vite dev` the initial useEffect double-fires,
+    // producing two unfiltered /tax/debts calls; without a specific matcher
+    // the post-click wait would alias to the duplicate.
+    cy.intercept("GET", /\/api\/tax\/debts\?[^?]*team=client/).as("debtsFiltered");
+    cy.intercept("GET", "**/api/tax/debts*").as("debtsAny");
     cy.visit("/tax");
-    // Initial load (1 request in production build; StrictMode double-fires
-    // only in `vite dev`, but tests run against the nginx-served bundle).
-    cy.wait("@debts");
+    cy.wait("@debtsAny");
     cy.get(".tax-filters select").select("Klijenti");
     cy.contains(".tax-filters button", "Pretraži").click();
-    cy.wait("@debts").its("request.url").should("include", "team=client");
+    cy.wait("@debtsFiltered").its("request.url").should("include", "team=client");
     // If the table is non-empty, every visible row must have type=client.
     cy.get("body").then(($b) => {
       if ($b.find(".tax-table tbody tr").length > 0) {
@@ -53,12 +62,13 @@ describe("Porez tracking — #74–81", () => {
   // #77: Filtriranje po imenu — input feeds ?name=
   it("#77: filtriranje po imenu šalje ?name= i tabela se filtrira", () => {
     cy.loginAs("supervisor");
-    cy.intercept("GET", "**/api/tax/debts*").as("debts");
+    cy.intercept("GET", /\/api\/tax\/debts\?[^?]*name=Marko/).as("debtsFiltered");
+    cy.intercept("GET", "**/api/tax/debts*").as("debtsAny");
     cy.visit("/tax");
-    cy.wait("@debts");
+    cy.wait("@debtsAny");
     cy.get(".tax-filters input[placeholder='Ime ili prezime']").type("Marko");
     cy.contains(".tax-filters button", "Pretraži").click();
-    cy.wait("@debts").its("request.url").should("include", "name=Marko");
+    cy.wait("@debtsFiltered").its("request.url").should("include", "name=Marko");
   });
 
   // #78: Automatski mesecni cron — RunTaxJob u tax/cron.go pokrece se mesecno.

@@ -192,48 +192,53 @@ describe("Kreiranje naloga — #26–47", () => {
 
   // #36 / #37 / #38 — SELL flow se pokriva kroz portfolio.cy.js (Prodaj iz portfolija).
 
-  // #39 Provizija Market: min(14% * total, 7$). We verify *that* it's > 0 and
-  // matches the cap formula at the boundary (large enough order to hit $7 cap).
-  // Commission is read from the orders list row (not the create response).
-  it("#39: market provizija je min(14%, 7$) — order veliki dovoljno da pogodi cap", () => {
+  // #39 Provizija Market: min(14% * total, 7$). Asserts the EXACT formula from
+  // commission.go: `min((approxNative * 140) / 1000, 700)` in instrument minor units.
+  // approxNative = contract_size * price_per_unit * quantity (server.go:151).
+  it("#39: market provizija je min(14% * total, 7$)", () => {
     cy.findListingByTicker(TICKER).then((l) => {
-      // 50 shares of MSFT @ $420 = $21000 total → 14% = $2940 → cap to $7.
-      // Sized to fit under bank USD seed ($30K) so the new pre-flight funds
-      // guard (server.go) doesn't reject before the commission row is written.
+      const QTY = 50;
+      const contractSize = l.contract_size || 1;
       cy.createOrderApi({
         account_number: BANK_USD_ACCOUNT,
         order_type: "market",
         direction: "buy",
-        quantity: 50,
+        quantity: QTY,
         listing_id: l.id,
       }).then((resp) => {
         if (resp.status >= 400) return; // limit may reject — see #50
         cy.getOrderById(resp.body.order_id).then((o) => {
-          // commission expressed in minor units of asset currency (USD cents)
-          // $7 cap = 700 cents. Allow small drift if commission rounds.
-          expect(o.commission, "commission capped near $7").to.be.lessThan(800);
-          expect(o.commission).to.be.greaterThan(0);
+          const approxNative = contractSize * l.price * QTY;
+          const pct = Math.floor((approxNative * 140) / 1000);
+          const expected = Math.min(pct, 700);
+          expect(o.commission, "commission = min(14% × total, $7 cap)").to.eq(expected);
         });
       });
     });
   });
 
-  // #40 Provizija Limit: min(24% * total, 12$). Same shape, different constants.
-  it("#40: limit provizija je min(24%, 12$)", () => {
+  // #40 Provizija Limit: min(24% * total, 12$). Same formula shape, permille=240, cap=1200.
+  // Spec uses "početna cena" — for limit orders the planned debit at placement is
+  // contract_size * limit_price * quantity (server.go's marketReferencePrice + commission flow).
+  it("#40: limit provizija je min(24% * total, $12)", () => {
     cy.findListingByTicker(TICKER).then((l) => {
+      const QTY = 50;
+      const contractSize = l.contract_size || 1;
+      const limitPrice = l.price + 100;
       cy.createOrderApi({
         account_number: BANK_USD_ACCOUNT,
         order_type: "limit",
         direction: "buy",
-        quantity: 50,
+        quantity: QTY,
         listing_id: l.id,
-        limit_price: l.price + 100,
+        limit_price: limitPrice,
       }).then((resp) => {
         if (resp.status >= 400) return;
         cy.getOrderById(resp.body.order_id).then((o) => {
-          // $12 cap = 1200 cents.
-          expect(o.commission, "commission capped near $12").to.be.lessThan(1300);
-          expect(o.commission).to.be.greaterThan(0);
+          const approxNative = contractSize * limitPrice * QTY;
+          const pct = Math.floor((approxNative * 240) / 1000);
+          const expected = Math.min(pct, 1200);
+          expect(o.commission, "commission = min(24% × total, $12 cap)").to.eq(expected);
         });
       });
     });
@@ -257,17 +262,16 @@ describe("Kreiranje naloga — #26–47", () => {
     });
   });
 
-  // #42 Nevalidna valuta racuna — non-existent account_number
-  it("#42: nepostojeci account_number vraca gresku", () => {
-    cy.findListingByTicker(TICKER).then((l) => {
-      cy.createOrderApi({
-        account_number: "999999999999999999",
-        order_type: "market",
-        direction: "buy",
-        quantity: 1,
-        listing_id: l.id,
-      }).its("status").should("be.gte", 400).and("be.lt", 500);
-    });
+  // #42 Nevalidna valuta racuna — spec describes an account in an "unsupported"
+  // currency. The seed (services/bank/migrations/seed.sql) provisions accounts
+  // in RSD/EUR/CHF/USD/GBP/JPY/CAD/AUD with exchange rates for all eight, so
+  // the unsupported-currency path is unreachable without seed changes. Skipping
+  // as out-of-spec rather than asserting a false-positive proxy. The previous
+  // "nonexistent account_number" assertion is structurally identical to #28
+  // (NotFound on unknown id) and was removed to avoid double-counting coverage.
+  it.skip("#42: nepodržana valuta računa odbacuje order", () => {
+    // TODO: requires seed extension with an account in a currency that has no
+    // exchange_rates row. Re-enable then.
   });
 
   // #43 Nedovoljno sredstava — koristim klijenta sa malim USD balansom (Marko's USD has 20000 = $200, traziti veliku kolicinu)
@@ -284,17 +288,31 @@ describe("Kreiranje naloga — #26–47", () => {
     });
   });
 
-  // #44 Aktuar konverzija bez provizije — backend pravilo, asertujemo na uspeh za RSD racun
-  it("#44: aktuar moze da koristi RSD racun za USD listing (konverzija bez provizije)", () => {
+  // #44 Aktuar konverzija bez provizije — employee placers debit a different-currency
+  // bank account for a USD listing; planCommissionCharge (commission.go) skips the
+  // menjacnica permille for non-clients. We assert (a) order is created, (b) order
+  // commission is the instrument-currency cap (USD cents), not the much smaller
+  // amount you'd see if the menjacnica fee were also baked in.
+  it("#44: aktuar može da koristi RSD račun za USD listing (konverzija bez provizije)", () => {
     cy.findListingByTicker(TICKER).then((l) => {
+      const QTY = 1;
       cy.createOrderApi({
         account_number: BANK_RSD_ACCOUNT, // bank RSD with 1B
         order_type: "market",
         direction: "buy",
-        quantity: 1,
+        quantity: QTY,
         listing_id: l.id,
       }).then((r) => {
-        expect(r.status).to.be.lessThan(500);
+        expect(r.status, "cross-currency aktuar order accepted").to.be.oneOf([200, 201]);
+        cy.getOrderById(r.body.order_id).then((o) => {
+          const contractSize = l.contract_size || 1;
+          const approxNative = contractSize * l.price * QTY;
+          const pct = Math.floor((approxNative * 140) / 1000);
+          const expected = Math.min(pct, 700);
+          // Commission column stores the instrument-currency amount (USD cents).
+          // No menjacnica permille for employees, so this matches #39's formula exactly.
+          expect(o.commission, "USD-denominated commission, no menjacnica markup").to.eq(expected);
+        });
       });
     });
   });
@@ -304,30 +322,16 @@ describe("Kreiranje naloga — #26–47", () => {
     // See cypress/e2e/ui/create-order-modal.cy.js
   });
 
-  // #46 SKIPPED — kod hard-rejectuje market order kad je berza closed; spec
-  // opisuje delayed izvrsavanje koje kod nema.
-  it("#46: berza zatvorena → market order se odbija (kod hard-rejectuje, spec govori delayed exec)", () => {
-    cy.loginAs("supervisor");
-    cy.setExchangeOpen(NASDAQ_MIC, false); // close it
-    cy.loginAs("agent");
-
-    cy.findListingByTicker(TICKER).then((l) => {
-      cy.createOrderApi({
-        account_number: BANK_USD_ACCOUNT,
-        order_type: "market",
-        direction: "buy",
-        quantity: 1,
-        listing_id: l.id,
-      }).then((r) => {
-        expect(r.status).to.be.gte(400).and.be.lt(500);
-        const detail = typeof r.body === "string" ? r.body : JSON.stringify(r.body);
-        expect(detail.toLowerCase()).to.match(/closed|exchange/);
-      });
-    });
-
-    // Restore.
-    cy.loginAs("supervisor");
-    cy.setExchangeOpen(NASDAQ_MIC, true);
+  // #46 Spec ↔ code divergence. Spec says: market order while exchange is
+  // closed is *created* and runs with a 30-min delay between fills. Backend
+  // (server.go:142) hard-rejects with FailedPrecondition. PR #201 added a
+  // frontend warning before submit but did not change the rejection behavior.
+  // Asserting the current code's rejection would give green CI for behavior
+  // that contradicts the spec — strictly worse than no test. Skipping until
+  // backend implements delayed execution.
+  it.skip("#46: market order pri zatvorenoj berzi se kreira sa odloženim izvršavanjem", () => {
+    // TODO: re-enable once server.go's closed-market path queues with delay
+    // instead of returning FailedPrecondition.
   });
 
   // #47 After-hours warning is a UI concern (modal text). Backend just sets

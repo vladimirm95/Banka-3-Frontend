@@ -33,6 +33,7 @@ describe("E2E: Kompletan radni dan na berzi", () => {
     buyOrderId: null,
     sellOrderId: null,
     agentId: null,
+    taxCollectedRsd: null,
   };
 
   before(() => {
@@ -66,7 +67,12 @@ describe("E2E: Kompletan radni dan na berzi", () => {
   // -------------------------------------------------------------------------
   it("DEO 1: supervizor postavlja limit agentu na 200.000 RSD", () => {
     cy.loginAs("supervisor");
+    // Wait for the agents list to land before asserting on the row — under
+    // full-suite ordering the first paint of the page beats the GET response
+    // and `cy.contains` retries time out against an empty <tbody>.
+    cy.intercept("GET", "**/api/actuaries*").as("loadActuaries");
     cy.visit("/actuary-management");
+    cy.wait("@loadActuaries");
 
     cy.contains(".amp-table tbody tr", "agent@banka.raf").within(() => {
       cy.get(".amp-btn-edit").click();
@@ -97,9 +103,15 @@ describe("E2E: Kompletan radni dan na berzi", () => {
   // -------------------------------------------------------------------------
   it("DEO 2: agent pretrazuje MSFT i otvara detalje", () => {
     cy.loginAs("agent");
+    // Wait for both listings + forex requests so the page is fully populated
+    // before we assert on tabs + search. Under full-suite ordering the dev
+    // server's compile-on-demand can stretch the first paint past 4 s.
+    cy.intercept("GET", "**/api/listings*").as("loadListings");
+    cy.intercept("GET", "**/api/forex-pairs*").as("loadForex");
     cy.visit("/securities");
+    cy.wait(["@loadListings", "@loadForex"]);
 
-    cy.get(".sec-tab").contains("Akcije").should("exist");
+    cy.get(".sec-tab", { timeout: 10_000 }).contains("Akcije").should("exist");
     cy.get(".sec-tab").contains("Forex").should("exist");
 
     cy.get(".sec-search").type(TICKER);
@@ -149,8 +161,12 @@ describe("E2E: Kompletan radni dan na berzi", () => {
     cy.url({ timeout: 10_000 }).should("include", "/orders/my");
 
     // Commission is computed server-side; assert via supervisor read.
-    cy.getOrderById(ctx.buyOrderId).then((o) => {
-      expect(o.commission, "commission present").to.be.a("number");
+    // Wrap in cy.then so ctx.buyOrderId is read at run-time (after the wait
+    // callback has populated it), not at queue-time when it's still null.
+    cy.then(() => {
+      cy.getOrderById(ctx.buyOrderId).then((o) => {
+        expect(o.commission, "commission present").to.be.a("number");
+      });
     });
   });
 
@@ -173,7 +189,9 @@ describe("E2E: Kompletan radni dan na berzi", () => {
 
     cy.contains(".mo-table tbody tr", String(ctx.buyOrderId), { timeout: 10_000 })
       .within(() => {
-        cy.get(".mo-status").should("contain", "pending");
+        // Status badge text is localized ("Na čekanju") via ORDER_STATUS_LABEL;
+        // pin to the class for a locale-independent check.
+        cy.get(".mo-status").should("have.class", "mo-status--pending");
         cy.get(".mo-approve-btn").click();
       });
 
@@ -312,6 +330,10 @@ describe("E2E: Kompletan radni dan na berzi", () => {
       expect(response.statusCode).to.be.oneOf([200, 201]);
       expect(response.body).to.have.property("rows_paid");
       expect(response.body).to.have.property("collected_rsd");
+      // Stash for DEO 11 — spec requires the calculation to produce a non-zero
+      // RSD figure (15% of profit, FX-converted). Capture instead of just
+      // checking the property exists.
+      ctx.taxCollectedRsd = response.body.collected_rsd;
     });
 
     cy.get(".tax-run-result", { timeout: 10_000 }).should("be.visible");
@@ -320,14 +342,17 @@ describe("E2E: Kompletan radni dan na berzi", () => {
   // -------------------------------------------------------------------------
   // DEO 11 — Verifikacija krajnjeg stanja
   // -------------------------------------------------------------------------
-  it("DEO 11: orderi izvrseni i usedLimit reflektuje BUY potrosnju", () => {
+  // See header note re: structural net-zero balance on the bank-stub USD
+  // account. We verify the *components* of the spec's balance equation
+  // separately: BUY commission > 0, SELL commission > 0, tax collected > 0,
+  // both orders settled, used_limit consumed. Pure account-balance arithmetic
+  // is left for the day this test runs against per-actuary personal accounts
+  // (see header note + spec p.51 caveat).
+  it("DEO 11: kompozicija balansa — komisije, porez i usedLimit svi nenula", () => {
     cy.loginAs("supervisor");
     cy.window().then((win) => {
       const token = win.sessionStorage.getItem("accessToken");
 
-      // See header note: when the placer's USD account doubles as the system
-      // fee/stub account, balance deltas net to 0 — assert order state and
-      // used_limit consumption instead.
       cy.request({
         method: "GET",
         url: "/api/orders",
@@ -339,9 +364,12 @@ describe("E2E: Kompletan radni dan na berzi", () => {
         expect(buy, "BUY order visible").to.exist;
         expect(buy.status).to.eq("done");
         expect(buy.remaining_portions).to.eq(0);
+        expect(buy.commission, "BUY debited a commission (USD cents)").to.be.greaterThan(0);
+
         expect(sell, "SELL order visible").to.exist;
         expect(sell.status).to.eq("done");
         expect(sell.remaining_portions).to.eq(0);
+        expect(sell.commission, "SELL debited a commission (USD cents)").to.be.greaterThan(0);
       });
 
       cy.request({
@@ -352,6 +380,13 @@ describe("E2E: Kompletan radni dan na berzi", () => {
         const a = resp.body.find((x) => x.email === "agent@banka.raf");
         expect(a.used_limit, "usedLimit reflects BUY spend").to.be.greaterThan(0);
       });
+
+      // Spec DEO 10 guarantees `collected_rsd > 0` when there's realized profit.
+      // The seed's MSFT price action is monotone enough that a BUY-then-SELL of
+      // the same security across a single day produces non-zero capital gains;
+      // if it ever doesn't, the spec's whole tax-collection chain is moot.
+      expect(ctx.taxCollectedRsd, "DEO 10 must have stashed collected_rsd").to.be.a("number");
+      expect(ctx.taxCollectedRsd, "tax run produced a non-zero RSD figure").to.be.greaterThan(0);
     });
   });
 
