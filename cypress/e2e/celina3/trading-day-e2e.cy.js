@@ -135,10 +135,14 @@ describe("E2E: Kompletan radni dan na berzi", () => {
     cy.url().should("include", `ticker=${TICKER}`);
     cy.url().should("include", "direction=buy");
 
-    // Form has two .co-input <select>s: first = order type, second = account.
-    cy.get("select.co-input").first().select("market");
+    // Form auto-detects the order type from the limit/stop inputs (review §S5);
+    // leaving them blank means "market". Only the account dropdown remains as
+    // a select — quantity is the first numeric input, then optional limit/stop.
     cy.get('input.co-input[type="number"]').first().clear().type("10");
-    cy.get("select.co-input").last().select(BANK_USD_ACCOUNT);
+    cy.get("select.co-input").select(BANK_USD_ACCOUNT);
+    // Type badge confirms the inferred order type — "Market" badge means we
+    // didn't accidentally land in limit/stop mode.
+    cy.contains(".co-type-badge", "Market").should("be.visible");
 
     // Estimate shows the approximate total — sanity-check it rendered.
     cy.get(".co-estimate-total").invoke("text").should("not.be.empty");
@@ -251,9 +255,9 @@ describe("E2E: Kompletan radni dan na berzi", () => {
     cy.url().should("include", "/orders/new");
     cy.url().should("include", "direction=sell");
 
-    cy.get("select.co-input").first().select("market");
     cy.get('input.co-input[type="number"]').first().clear().type("5");
-    cy.get("select.co-input").last().select(BANK_USD_ACCOUNT);
+    cy.get("select.co-input").select(BANK_USD_ACCOUNT);
+    cy.contains(".co-type-badge", "Market").should("be.visible");
 
     cy.contains(".co-btn-primary", "Nastavi na potvrdu").click();
 
