@@ -56,6 +56,7 @@ export default function EditClientPage() {
         phoneNumber: "",
         address: "",
         dateOfBirth: "",
+        marginEnabled: false,
     });
 
     const [errors, setErrors] = useState({});
@@ -85,6 +86,7 @@ export default function EditClientPage() {
                         phoneNumber: client.phone || "",
                         address: client.address || "",
                         dateOfBirth: formatDateForInput(client.dateOfBirth),
+                        marginEnabled: Boolean(client.marginEnabled ?? client.margin_enabled ?? false),
                     });
                 }
             } catch {
@@ -133,6 +135,7 @@ export default function EditClientPage() {
                 phoneNumber: form.phoneNumber,
                 address: form.address,
                 dateOfBirth: formattedDate,
+                marginEnabled: form.marginEnabled,
             });
 
             setErrors({});
@@ -246,6 +249,23 @@ export default function EditClientPage() {
                             {field("Broj telefona", "phoneNumber")}
                             {field("Adresa", "address")}
                             {field("Datum rođenja", "dateOfBirth", "text", "DD.MM.GGGG")}
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: 16 }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <input
+                                    type="checkbox"
+                                    name="marginEnabled"
+                                    checked={form.marginEnabled}
+                                    onChange={(e) =>
+                                        setForm((prev) => ({ ...prev, marginEnabled: e.target.checked }))
+                                    }
+                                />
+                                <span>Margin trgovanje dozvoljeno</span>
+                            </label>
+                            <small style={{ color: "#94a3b8" }}>
+                                Klijent može da uključi „Margin" pri kreiranju naloga (review §S64/§S65).
+                            </small>
                         </div>
 
                         <div className="form-actions">

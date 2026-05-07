@@ -69,8 +69,14 @@ export function mapOrder(o) {
 // { account_number, order_type, direction, quantity, listing_id|option_id|
 //   forex_pair_id, limit_price, stop_price, all_or_none, margin }
 // All money fields in minor units.
-export async function createOrder(payload) {
-  const { data } = await api.post("/orders", payload);
+//
+// idempotencyKey (UUID generated once per CreateOrder mount, see review §S34)
+// rides on the request as the Idempotency-Key header — the gateway forwards
+// it to the trading RPC so a curl-spam loop deduplicates server-side rather
+// than relying on the disabled-button UI guard.
+export async function createOrder(payload, idempotencyKey) {
+  const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+  const { data } = await api.post("/orders", payload, headers ? { headers } : undefined);
   return data;
 }
 

@@ -17,7 +17,8 @@ function normalizeClient(c) {
     address: c.address || c.Address,
     gender: c.gender || c.Gender,
     dateOfBirth: c.date_of_birth || c.DateOfBirth,
-    username: c.username || ""
+    username: c.username || "",
+    marginEnabled: Boolean(c.margin_enabled ?? c.MarginEnabled ?? false),
   };
 }
 
@@ -69,6 +70,7 @@ export async function updateClient(id, clientData) {
     email: clientData.email?.trim() || "",
     phone_number: clientData.phoneNumber?.replace(/\D/g, "") || "",
     address: clientData.address?.trim() || "",
+    margin_enabled: Boolean(clientData.marginEnabled),
   });
 
   clearClientCache();

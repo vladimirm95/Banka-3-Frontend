@@ -48,6 +48,10 @@ function mapListingToDetail(l) {
     // backend pricing, which is contract_size × price × quantity.
     contractSize: l.contract_size && l.contract_size > 0 ? l.contract_size : 1,
     settlementDate: l.settlement_date_unix || null,
+    // Per-listing minimum tradable quantity (review §S27). Default 1 when
+    // unset; CreateOrderPage uses this as the input's `min` and shows a
+    // hint so the user sees the rule before the backend rejects it.
+    minQuantity: l.min_quantity && l.min_quantity > 0 ? l.min_quantity : 1,
   };
 }
 

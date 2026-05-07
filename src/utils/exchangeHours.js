@@ -31,12 +31,18 @@ function parseUtcOffset(value) {
   return sign * (h + m / 60);
 }
 
+// AFTER_HOURS_MINUTES is the spec p.58 window: an order placed within four
+// hours after the close runs slower (executor adds a 30-min bonus per fill).
+// We surface the same window in the order form so the user sees the warning
+// before submitting (review §S47).
+const AFTER_HOURS_MINUTES = 4 * 60;
+
 export function computeExchangeStatus(ex) {
   if (!ex) {
-    return { open: false, label: "Nepoznato", className: "unknown", override: false };
+    return { open: false, label: "Nepoznato", className: "unknown", override: false, afterHours: false };
   }
   if (ex.open_override) {
-    return { open: true, label: "Otvorena (override)", className: "open", override: true };
+    return { open: true, label: "Otvorena (override)", className: "open", override: true, afterHours: false };
   }
   if (typeof ex.is_open === "boolean") {
     return {
@@ -44,12 +50,17 @@ export function computeExchangeStatus(ex) {
       label: ex.is_open ? "Otvorena" : "Zatvorena",
       className: ex.is_open ? "open" : "closed",
       override: false,
+      // Backend doesn't yet expose an after-hours flag; default false here
+      // and let callers fall through to the time-of-day branch below if they
+      // need it. is_open=true with no clock data simply means we trust the
+      // backend's call and skip the warning.
+      afterHours: false,
     };
   }
   const openMin = parseTimeOfDay(ex.open_time);
   const closeMin = parseTimeOfDay(ex.close_time);
   if (openMin == null || closeMin == null) {
-    return { open: false, label: "Nepoznato", className: "unknown", override: false };
+    return { open: false, label: "Nepoznato", className: "unknown", override: false, afterHours: false };
   }
   const offsetH = parseUtcOffset(ex.time_zone_offset);
   const now = new Date();
@@ -57,15 +68,24 @@ export function computeExchangeStatus(ex) {
   const localDate = new Date(localMs);
   const day = localDate.getUTCDay();
   if (day === 0 || day === 6) {
-    return { open: false, label: "Zatvorena (vikend)", className: "closed", override: false };
+    return { open: false, label: "Zatvorena (vikend)", className: "closed", override: false, afterHours: false };
   }
   const minutesNow = localDate.getUTCHours() * 60 + localDate.getUTCMinutes();
   const isOpen = minutesNow >= openMin && minutesNow <= closeMin;
+  // After-hours: market just closed and we're inside the AFTER_HOURS window.
+  // Doesn't apply to weekends or to the pre-open period — those stay
+  // "Zatvorena" without a slow-execution caveat.
+  const afterHours = !isOpen && minutesNow > closeMin && (minutesNow - closeMin) <= AFTER_HOURS_MINUTES;
   return {
     open: isOpen,
-    label: isOpen ? "Otvorena" : "Zatvorena",
+    label: isOpen
+      ? "Otvorena"
+      : afterHours
+        ? "Zatvorena (after-hours)"
+        : "Zatvorena",
     className: isOpen ? "open" : "closed",
     override: false,
+    afterHours,
   };
 }
 

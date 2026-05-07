@@ -101,6 +101,14 @@ export default function CreateOrderPage() {
   // to miss. Pre-flight validation messages still use submitError.
   const [errorModal, setErrorModal] = useState(null);
 
+  // One UUID per page mount → server-side dedup of POST /orders (review
+  // §S34). Reuses the same key across retries so a re-clicked submit
+  // collapses to the originally-placed order id instead of stacking.
+  const idempotencyKey = useMemo(
+    () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`),
+    []
+  );
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -187,8 +195,11 @@ export default function CreateOrderPage() {
   function validate() {
     const errs = {};
     const q = Number(quantity);
-    if (!Number.isFinite(q) || q < 1) {
-      errs.quantity = "Količina mora biti najmanje 1.";
+    const minQty = security?.minQuantity || 1;
+    if (!Number.isFinite(q) || q < minQty) {
+      errs.quantity = minQty > 1
+        ? `Minimalna količina za ovaj listing je ${minQty}.`
+        : "Količina mora biti najmanje 1.";
     } else if (maxQuantity != null && q > maxQuantity) {
       errs.quantity = `Posedujete samo ${maxQuantity} jedinica — ne možete prodati više.`;
     }
@@ -260,7 +271,7 @@ export default function CreateOrderPage() {
         payload.stop_price = toMinor(stopPrice);
       }
 
-      await createOrder(payload);
+      await createOrder(payload, idempotencyKey);
       setShowConfirm(false);
       navigate("/orders/my", { replace: true });
     } catch (err) {
@@ -327,6 +338,12 @@ export default function CreateOrderPage() {
             Limit/Stop nalozi se mogu kreirati i čekaće okidač.
           </div>
         )}
+        {exchangeStatus?.afterHours && (
+          <div className="co-banner co-banner--warning">
+            Berza {security?.exchange || ""} je u after-hours periodu — svaki deo
+            naloga će se izvršavati uz dodatno čekanje od ~30 min.
+          </div>
+        )}
         {errors.exchange && <div className="co-banner co-banner--error">{errors.exchange}</div>}
         {isEmployee && (
           <div className="co-banner co-banner--info">
@@ -378,12 +395,14 @@ export default function CreateOrderPage() {
 
             <label className="co-field">
               <span className="co-field-label">
-                Količina{maxQuantity != null ? ` (max ${maxQuantity})` : ""}
+                Količina
+                {security?.minQuantity > 1 ? ` (min ${security.minQuantity})` : ""}
+                {maxQuantity != null ? ` (max ${maxQuantity})` : ""}
               </span>
               <input
                 className={`co-input ${errors.quantity ? "co-input--error" : ""}`}
                 type="number"
-                min="1"
+                min={security?.minQuantity || 1}
                 max={maxQuantity ?? undefined}
                 step="1"
                 value={quantity}
