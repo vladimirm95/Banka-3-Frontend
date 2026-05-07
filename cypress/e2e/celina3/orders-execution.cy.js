@@ -42,17 +42,68 @@ describe("Izvršavanje naloga — #59–62", () => {
     });
   });
 
-  // #60 AON — ne izvršava se bez pune dostupne količine. The executor
-  // (executor.go:401–413) implements AON as commit-the-full-quantity-and-
-  // rollback-on-debit-failure: the block path requires a balance shortfall at
-  // fill time. With seeded bank account funds and no orderbook depth model,
-  // we can't deterministically force that rollback in CI. Skipping rather
-  // than asserting qty=1 always fills (tautology — old assertion gave
-  // false-positive coverage on this scenario).
-  it.skip("#60: AON BUY čeka punu količinu pre izvršavanja", () => {
-    // TODO: re-enable when the seed (or a test-only knob) can simulate
-    // notional liquidity below the order quantity, OR when orders-execution
-    // exposes per-order transaction counts so we can assert "0 partial fills".
+  // #60 AON — ne izvršava se bez pune dostupne količine. The executor's AON
+  // path (executor.go chooseChunk) commits the full remaining quantity in
+  // one shot and relies on debitPlacer's balance guard to roll the chunk
+  // back when funds aren't there — that rollback IS the "wait for full
+  // liquidity" signal. Pre-flight at creation (server.go) blocks
+  // underfunded orders, so we can't seed the underfunding directly; instead
+  // we let creation pass with a funded account, then drain the account via
+  // db:exec before the executor's first tick. The order should sit in
+  // approved indefinitely with remaining_portions unchanged (no partial
+  // fills, ever). Restore the balance at the end so #61/#62 reuse the
+  // account.
+  it("#60: AON BUY čeka punu količinu pre izvršavanja", () => {
+    cy.loginAs("agent");
+    cy.findListingByTicker(TICKER).then((l) => {
+      cy.createOrderApi({
+        account_number: BANK_USD_ACCOUNT,
+        order_type: "market",
+        direction: "buy",
+        quantity: 5,
+        listing_id: l.id,
+        all_or_none: true,
+      }).then((r) => {
+        expect(r.status, "AON create accepted while account is funded").to.be.lessThan(400);
+        const orderId = r.body.order_id;
+
+        cy.task("db:exec", {
+          sql: "SELECT balance FROM accounts WHERE number = $1",
+          params: [BANK_USD_ACCOUNT],
+        }).then((res) => {
+          const savedBalance = Number(res.rows[0].balance);
+          cy.task("db:exec", {
+            sql: "UPDATE accounts SET balance = 0 WHERE number = $1",
+            params: [BANK_USD_ACCOUNT],
+          });
+
+          cy.loginAs("supervisor");
+          cy.window().then((win) => {
+            const token = win.sessionStorage.getItem("accessToken");
+            cy.request({
+              method: "POST",
+              url: `/api/orders/${orderId}/approve`,
+              headers: { Authorization: `Bearer ${token}` },
+              failOnStatusCode: false,
+            });
+          });
+
+          // Tick is 1s, failure backoff is 30s — 8s covers at least one
+          // commit-and-rollback attempt.
+          cy.wait(8_000);
+          cy.getOrderById(orderId).then((o) => {
+            expect(o.status, "AON not done while underfunded").to.not.eq("done");
+            expect(o.remaining_portions, "AON did not partial-fill").to.eq(5);
+            expect(o.all_or_none, "AON flag persisted").to.eq(true);
+          });
+
+          cy.task("db:exec", {
+            sql: "UPDATE accounts SET balance = $1 WHERE number = $2",
+            params: [savedBalance, BANK_USD_ACCOUNT],
+          });
+        });
+      });
+    });
   });
 
   // #61 AON happy path — when the full quantity is available, AON fills
