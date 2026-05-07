@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Sidebar from "../components/Sidebar.jsx";
 import { ActuaryService } from "../services/ActuaryService";
 import "./ActuaryManagementPage.css";
 
@@ -113,6 +114,7 @@ export default function ActuaryManagementPage() {
     if (loading) {
         return (
             <div className="amp-page">
+                <Sidebar />
                 <div className="amp-header">
                     <h1 className="amp-title">Učitavanje...</h1>
                 </div>
@@ -123,6 +125,7 @@ export default function ActuaryManagementPage() {
     if (error) {
         return (
             <div className="amp-page">
+                <Sidebar />
                 <div className="amp-header">
                     <div>
                         <h1 className="amp-title">Greška</h1>
@@ -142,6 +145,7 @@ export default function ActuaryManagementPage() {
 
     return (
         <div className="amp-page">
+            <Sidebar />
             {/* Header */}
             <div className="amp-header">
                 <div>

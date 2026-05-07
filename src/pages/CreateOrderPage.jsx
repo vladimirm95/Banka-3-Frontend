@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
-import { getAccounts } from "../services/AccountService.js";
+import { getAccounts, getTradingAccounts } from "../services/AccountService.js";
 import { getSecurityDetail } from "../services/SecurityDetailService.js";
 import { getExchanges } from "../services/ExchangeService.js";
 import {
@@ -14,12 +14,18 @@ import { formatCurrency } from "../utils/loanCalculations.js";
 import { computeExchangeStatus, findExchangeByAcronym } from "../utils/exchangeHours.js";
 import "./CreateOrderPage.css";
 
-const ORDER_TYPES = [
-  { value: "market", label: "Market" },
-  { value: "limit", label: "Limit" },
-  { value: "stop", label: "Stop" },
-  { value: "stop_limit", label: "Stop-Limit" },
-];
+// Spec p.49: order type derives from which price fields the user fills in —
+// Market (none), Limit (limit only), Stop (stop only), Stop-Limit (both).
+// We compute it instead of asking, so the UI matches the placement rules
+// strictly enforced by trading/orders.go validatePriceFields.
+function deriveOrderType(limitPrice, stopPrice) {
+  const hasL = limitPrice !== "" && Number(limitPrice) > 0;
+  const hasS = stopPrice !== "" && Number(stopPrice) > 0;
+  if (hasL && hasS) return "stop_limit";
+  if (hasL) return "limit";
+  if (hasS) return "stop";
+  return "market";
+}
 
 function isPastSettlement(value) {
   if (!value) return false;
@@ -69,10 +75,10 @@ export default function CreateOrderPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const [orderType, setOrderType] = useState("market");
   const [quantity, setQuantity] = useState(1);
   const [limitPrice, setLimitPrice] = useState("");
   const [stopPrice, setStopPrice] = useState("");
+  const orderType = deriveOrderType(limitPrice, stopPrice);
   const [accountNumber, setAccountNumber] = useState("");
   const [allOrNone, setAllOrNone] = useState(false);
   const [margin, setMargin] = useState(false);
@@ -90,9 +96,14 @@ export default function CreateOrderPage() {
         // parallel — all three are needed before the form is interactive
         // (exchanges drive the closed-market warning, see §S45).
         const securityKey = tickerParam || listingIdParam;
+        // Spec p.55 — Takeaway 7: employees trade off the bank's internal
+        // trading ledger (system@banka3.rs), not arbitrary client accounts.
+        // Clients keep their own accounts here; admins follow the employee
+        // path because they're seated as employees in this codebase.
+        const accountsLoader = role === "employee" ? getTradingAccounts : getAccounts;
         const [sec, accs, exs] = await Promise.all([
           securityKey ? getSecurityDetail(securityKey).catch(() => null) : Promise.resolve(null),
-          getAccounts().catch(() => []),
+          accountsLoader().catch(() => []),
           getExchanges().catch(() => []),
         ]);
         if (cancelled) return;
@@ -337,26 +348,18 @@ export default function CreateOrderPage() {
 
         <form className="co-form" onSubmit={handleContinue} noValidate>
           <div className="co-row">
-            <label className="co-field">
+            <div className="co-field">
               <span className="co-field-label">Tip naloga</span>
-              <select
-                className="co-input"
-                value={orderType}
-                onChange={(e) => {
-                  setOrderType(e.target.value);
-                  setErrors((p) => ({ ...p, limitPrice: "", stopPrice: "" }));
-                }}
-              >
-                {ORDER_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-              {orderType === "market" && (
-                <span className="co-hint">
-                  Ako ostavite limit/stop polja prazna, koristi se trenutna tržišna cena.
-                </span>
-              )}
-            </label>
+              <span className={`co-type-badge co-type-badge--${orderType}`}>
+                {orderTypeLabel}
+              </span>
+              <span className="co-hint">
+                {orderType === "market" && "Bez limita/stop-a — popunjava se po trenutnoj tržišnoj ceni."}
+                {orderType === "limit" && "Limit cena unesena — kupovina samo dok je ask ≤ limit (sell: bid ≥ limit)."}
+                {orderType === "stop" && "Stop unet — okida se kada cena dostigne stop, zatim se ponaša kao Market."}
+                {orderType === "stop_limit" && "Stop + Limit — okida se na stop, zatim se ponaša kao Limit."}
+              </span>
+            </div>
 
             <label className="co-field">
               <span className="co-field-label">Količina</span>
@@ -375,44 +378,40 @@ export default function CreateOrderPage() {
             </label>
           </div>
 
-          {(showLimitField || showStopField) && (
-            <div className="co-row">
-              {showLimitField && (
-                <label className="co-field">
-                  <span className="co-field-label">Limit vrednost ({securityCurrency})</span>
-                  <input
-                    className={`co-input ${errors.limitPrice ? "co-input--error" : ""}`}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={limitPrice}
-                    onChange={(e) => {
-                      setLimitPrice(e.target.value);
-                      if (errors.limitPrice) setErrors((p) => ({ ...p, limitPrice: "" }));
-                    }}
-                  />
-                  {errors.limitPrice && <span className="co-error">{errors.limitPrice}</span>}
-                </label>
-              )}
-              {showStopField && (
-                <label className="co-field">
-                  <span className="co-field-label">Stop vrednost ({securityCurrency})</span>
-                  <input
-                    className={`co-input ${errors.stopPrice ? "co-input--error" : ""}`}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={stopPrice}
-                    onChange={(e) => {
-                      setStopPrice(e.target.value);
-                      if (errors.stopPrice) setErrors((p) => ({ ...p, stopPrice: "" }));
-                    }}
-                  />
-                  {errors.stopPrice && <span className="co-error">{errors.stopPrice}</span>}
-                </label>
-              )}
-            </div>
-          )}
+          <div className="co-row">
+            <label className="co-field">
+              <span className="co-field-label">Limit vrednost ({securityCurrency})</span>
+              <input
+                className={`co-input ${errors.limitPrice ? "co-input--error" : ""}`}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="prazno za market"
+                value={limitPrice}
+                onChange={(e) => {
+                  setLimitPrice(e.target.value);
+                  if (errors.limitPrice) setErrors((p) => ({ ...p, limitPrice: "" }));
+                }}
+              />
+              {errors.limitPrice && <span className="co-error">{errors.limitPrice}</span>}
+            </label>
+            <label className="co-field">
+              <span className="co-field-label">Stop vrednost ({securityCurrency})</span>
+              <input
+                className={`co-input ${errors.stopPrice ? "co-input--error" : ""}`}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="prazno za market"
+                value={stopPrice}
+                onChange={(e) => {
+                  setStopPrice(e.target.value);
+                  if (errors.stopPrice) setErrors((p) => ({ ...p, stopPrice: "" }));
+                }}
+              />
+              {errors.stopPrice && <span className="co-error">{errors.stopPrice}</span>}
+            </label>
+          </div>
 
           <div className="co-row">
             <label className="co-field">

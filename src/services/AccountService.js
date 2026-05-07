@@ -24,6 +24,15 @@ export async function getAccounts() {
   return Array.isArray(response.data) ? response.data.map(mapAccount) : [];
 }
 
+// getTradingAccounts is the employee-only feed used by the order-create form
+// to restrict the dropdown to bankin trading račun (system@banka3.rs ledger).
+// Spec p.55 — Takeaway 7. Clients keep using getAccounts() because they trade
+// off their own real accounts.
+export async function getTradingAccounts() {
+  const response = await api.get("/accounts", { params: { trading: true } });
+  return Array.isArray(response.data) ? response.data.map(mapAccount) : [];
+}
+
 export async function getAccountTransactions(accountNumber) {
   try {
     const response = await api.get("/transactions", {
