@@ -32,6 +32,16 @@ export const ActuaryService = {
         return mapActuary(data);
     },
 
+    // Flips agents.need_approval (review §S50). Backend endpoint already
+    // existed; this just exposes it to the supervisor's actuary portal so
+    // they can disable per-trade approval for trusted agents.
+    async setNeedApproval(agentId, needApproval) {
+        const { data } = await api.patch(`/actuaries/${agentId}/need-approval`, {
+            need_approval: needApproval,
+        });
+        return mapActuary(data);
+    },
+
     isSupervisorOrAdmin() {
         try {
             const permissions = JSON.parse(sessionStorage.getItem("permissions") || "[]");

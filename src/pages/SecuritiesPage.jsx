@@ -18,6 +18,18 @@ const ALL_TABS = [
 
 const SORT_FIELDS = { price: "price", volume: "volume", margin: "maintenanceMargin" };
 
+// Tickers some users like to search for under shall-we-call-them creative
+// names. Mapped to the real ticker so the table still filters cleanly.
+// Review takeaway 3 — keep it lighthearted but not intrusive: only an exact
+// (case-insensitive) match triggers the rewrite.
+const SEARCH_ALIASES = {
+    microslop: "microsoft",
+    "msft.exe": "msft",
+    crapple: "apple",
+    googol: "google",
+    teslol: "tesla",
+};
+
 function formatChange(change) {
     const decimals = Math.abs(change) < 1 ? 4 : 2;
     const sign = change >= 0 ? "+" : "";
@@ -146,7 +158,8 @@ export default function SecuritiesPage() {
             if (isClient && s.type === "forex") return false;
             if (activeTab !== "all" && s.type !== activeTab) return false;
 
-            const q = search.trim().toLowerCase();
+            const raw = search.trim().toLowerCase();
+            const q = SEARCH_ALIASES[raw] ?? raw;
             if (q && !s.ticker.toLowerCase().includes(q) && !s.name.toLowerCase().includes(q))
                 return false;
 

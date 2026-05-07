@@ -424,3 +424,33 @@
         min-width: 700px;
     }
 }
+.amp-need-approval {
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.amp-need-approval:hover:not(:disabled) {
+    filter: brightness(1.15);
+}
+
+.amp-need-approval:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.amp-need-approval--on {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+.amp-need-approval--off {
+    background: rgba(74, 222, 128, 0.18);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.4);
+}

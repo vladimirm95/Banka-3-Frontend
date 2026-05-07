@@ -94,6 +94,19 @@ export default function ActuaryManagementPage() {
         }
     };
 
+    const handleToggleNeedApproval = async (id, current) => {
+        try {
+            setSaving(true);
+            await ActuaryService.setNeedApproval(id, !current);
+            setAgents(agents.map((a) => (a.id === id ? { ...a, needApproval: !current } : a)));
+        } catch (err) {
+            console.error("Error toggling need_approval:", err);
+            alert(err.message || "Greška pri menjanju potrebe za odobrenjem.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleResetUsed = async (id) => {
         try {
             setSaving(true);
@@ -200,13 +213,14 @@ export default function ActuaryManagementPage() {
                         <th>Limit</th>
                         <th>Iskorišćeno</th>
                         <th>Iskorišćenost</th>
+                        <th>Auto-approve</th>
                         <th>Akcije</th>
                     </tr>
                     </thead>
                     <tbody>
                     {filtered.length === 0 ? (
                         <tr>
-                            <td colSpan={7} className="amp-empty">
+                            <td colSpan={8} className="amp-empty">
                                 {agents.length === 0
                                     ? "Trenutno nema registrovanih agenata."
                                     : "Nema pronađenih agenata sa datim filterima."}
@@ -278,6 +292,18 @@ export default function ActuaryManagementPage() {
                                                 ? Math.round((agent.usedLimit / agent.limit) * 100)
                                                 : 0}%
                                         </span>
+                                </td>
+                                <td>
+                                    <button
+                                        className={`amp-need-approval ${agent.needApproval ? "amp-need-approval--on" : "amp-need-approval--off"}`}
+                                        onClick={() => handleToggleNeedApproval(agent.id, agent.needApproval)}
+                                        disabled={saving}
+                                        title={agent.needApproval
+                                            ? "Svi nalozi traže supervizorovo odobrenje. Klikni za auto-approve."
+                                            : "Nalozi se auto-odobravaju u okviru limita. Klikni za obavezan approval."}
+                                    >
+                                        {agent.needApproval ? "Ručno" : "Auto"}
+                                    </button>
                                 </td>
                                 <td>
                                     <div className="amp-actions">
