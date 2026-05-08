@@ -11,6 +11,8 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "cypress:run:ui": "cypress run --spec 'cypress/e2e/ui/**/*.cy.js'",
+    "cypress:run:celina3": "cypress run --spec 'cypress/e2e/celina3/**/*.cy.js'",
+    "cypress:open:celina3": "cypress open --e2e --browser electron --config specPattern='cypress/e2e/celina3/**/*.cy.js'",
     "cypress:run:docker": "CYPRESS_BASE_URL=http://localhost:3000 cypress run"
   },
   "dependencies": {
