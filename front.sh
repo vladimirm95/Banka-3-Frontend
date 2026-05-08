@@ -3,10 +3,29 @@
 # Per-spec invocation is required: services hold in-process state
 # (executor queues, exchange-hours overrides) that survives db:reset
 # but not a container restart.
+#
+# Portable: paths resolve from this script's own location.
+# Override BACKEND= if the backend repo is not a sibling of this one.
 set -u
 
-BACKEND=/home/user/si/Banka-3-Backend
-FRONTEND=/home/user/si/Banka-3-Frontend
+# Resolve the directory containing this script, following symlinks.
+SCRIPT_SOURCE=${BASH_SOURCE[0]}
+while [ -L "$SCRIPT_SOURCE" ]; do
+  SCRIPT_DIR=$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)
+  SCRIPT_SOURCE=$(readlink "$SCRIPT_SOURCE")
+  [[ $SCRIPT_SOURCE != /* ]] && SCRIPT_SOURCE=$SCRIPT_DIR/$SCRIPT_SOURCE
+done
+FRONTEND=$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)
+
+# Backend defaults to a sibling directory; override with BACKEND=/path ... front.sh
+BACKEND=${BACKEND:-$(cd -P "$FRONTEND/../Banka-3-Backend" 2>/dev/null && pwd)}
+if [ -z "${BACKEND:-}" ] || [ ! -d "$BACKEND" ]; then
+  echo "ERROR: backend directory not found." >&2
+  echo "  expected sibling: $FRONTEND/../Banka-3-Backend" >&2
+  echo "  override with: BACKEND=/path/to/Banka-3-Backend $0" >&2
+  exit 1
+fi
+
 LOG_DIR=$FRONTEND/cypress-run
 mkdir -p "$LOG_DIR"
 SUMMARY="$LOG_DIR/SUMMARY.txt"
