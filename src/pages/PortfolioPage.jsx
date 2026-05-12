@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
+import MyFundsTab from "../components/portfolio/MyFundsTab.jsx";
 import { formatCurrency } from "../utils/loanCalculations.js";
 import {
   listPortfolio,
@@ -60,6 +61,7 @@ export default function PortfolioPage() {
 
   const [publicModal, setPublicModal] = useState(null); // { holding, value }
   const [exerciseModal, setExerciseModal] = useState(null); // { holding, account }
+  const [activeTab, setActiveTab] = useState("holdings");
 
   const role = sessionStorage.getItem("userRole") || "";
   const permissions = useMemo(() => {
@@ -178,6 +180,66 @@ export default function PortfolioPage() {
 
       <h1 className="portfolio-title pf-title">Moj portfolio</h1>
 
+      <div
+        className="pf-tabs"
+        role="tablist"
+        aria-label="Portfolio sekcije"
+        onKeyDown={(e) => {
+          const order = ["holdings", "funds"];
+          const idx = order.indexOf(activeTab);
+          let next = null;
+          if (e.key === "ArrowRight") next = order[(idx + 1) % order.length];
+          else if (e.key === "ArrowLeft")
+            next = order[(idx - 1 + order.length) % order.length];
+          else if (e.key === "Home") next = order[0];
+          else if (e.key === "End") next = order[order.length - 1];
+          if (next) {
+            e.preventDefault();
+            setActiveTab(next);
+            document.getElementById(`pf-tab-${next}`)?.focus();
+          }
+        }}
+      >
+        <button
+          type="button"
+          role="tab"
+          id="pf-tab-holdings"
+          aria-selected={activeTab === "holdings"}
+          aria-controls="pf-panel-holdings"
+          tabIndex={activeTab === "holdings" ? 0 : -1}
+          className={`pf-tab${activeTab === "holdings" ? " pf-tab--active" : ""}`}
+          onClick={() => setActiveTab("holdings")}
+        >
+          Hartije
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="pf-tab-funds"
+          aria-selected={activeTab === "funds"}
+          aria-controls="pf-panel-funds"
+          tabIndex={activeTab === "funds" ? 0 : -1}
+          className={`pf-tab${activeTab === "funds" ? " pf-tab--active" : ""}`}
+          onClick={() => setActiveTab("funds")}
+        >
+          Moji fondovi
+        </button>
+      </div>
+
+      {activeTab === "funds" ? (
+        <div
+          id="pf-panel-funds"
+          role="tabpanel"
+          aria-labelledby="pf-tab-funds"
+        >
+          <MyFundsTab />
+        </div>
+      ) : (
+      <div
+        id="pf-panel-holdings"
+        role="tabpanel"
+        aria-labelledby="pf-tab-holdings"
+      >
       <div className="portfolio-summaries pf-summary">
         <div
           className={`portfolio-summary pf-summary-card ${
@@ -325,6 +387,8 @@ export default function PortfolioPage() {
             </tbody>
           </table>
         </div>
+      )}
+      </div>
       )}
 
       {/* publicModal / exerciseModal */}
