@@ -39,6 +39,7 @@ import ActuaryManagementPage from "../pages/ActuaryManagementPage.jsx";
 import CreateOrderPage from "../pages/CreateOrderPage.jsx";
 import MyOrdersPage from "../pages/MyOrdersPage.jsx";
 import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
+import OtcOffersPage from "../pages/OtcOffersPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -99,6 +100,7 @@ export default function AppRouter() {
           <Route path="/accounts/:accountNumber" element={<ProtectedRoute requiredRole="client"><AccountDetailsPage /></ProtectedRoute>} />
           <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
           <Route path="/exchange" element={<ProtectedRoute requiredRole="client"><ExchangePage /></ProtectedRoute>} />
+          <Route path="/otc/offers" element={<ProtectedRoute><OtcOffersPage /></ProtectedRoute>} />
           <Route path="/berza" element={<ProtectedRoute requiredRole="employee"><BerzaPage /></ProtectedRoute>} />
 
           <Route path="/loans" element={<ProtectedRoute requiredRole="client"><LoansPage /></ProtectedRoute>} />
