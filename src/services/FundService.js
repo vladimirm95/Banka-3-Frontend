@@ -4,7 +4,7 @@ import api from "./api.js";
 // Banka-3-Backend. Mock layer ispod definiše budući REST contract — kad
 // backend stigne, postavi VITE_USE_FUNDS_MOCK=false u .env.
 const USE_MOCK =
-  (import.meta.env?.VITE_USE_FUNDS_MOCK ?? "true") !== "false";
+  (import.meta.env?.VITE_USE_FUNDS_MOCK ?? "true") === "true";
 
 const seedFunds = [
   {
