@@ -6,7 +6,7 @@ import api from "./api";
 // definiše budući REST contract — kad backend stigne, postavi
 // VITE_USE_ACTUARY_PROFIT_MOCK=false u .env.
 const USE_PROFIT_MOCK =
-    (import.meta.env?.VITE_USE_ACTUARY_PROFIT_MOCK ?? "true") !== "false";
+    (import.meta.env?.VITE_USE_ACTUARY_PROFIT_MOCK ?? "true") === "true";
 
 const mockActuaryProfits = [
     { id: "1", first_name: "Milan",  last_name: "Milić",      profit_minor: 124_500_000 },
@@ -19,7 +19,7 @@ const mockActuaryProfits = [
 
 function mapActuaryProfit(d) {
     return {
-        id: String(d.id ?? ""),
+        id: d.id != null ? String(d.id) : null,
         firstName: d.first_name ?? d.firstName ?? "",
         lastName: d.last_name ?? d.lastName ?? "",
         profit: Number(d.profit_minor ?? d.profit ?? 0) / 100,
@@ -29,10 +29,10 @@ function mapActuaryProfit(d) {
 export async function getActuaryProfits() {
     if (USE_PROFIT_MOCK) {
         await new Promise((r) => setTimeout(r, 120));
-        return mockActuaryProfits.map(mapActuaryProfit);
+        return mockActuaryProfits.map(mapActuaryProfit).filter((r) => r.id);
     }
     const { data } = await api.get("/actuaries/profits");
-    return (Array.isArray(data) ? data : []).map(mapActuaryProfit);
+    return (Array.isArray(data) ? data : []).map(mapActuaryProfit).filter((r) => r.id);
 }
 
 function mapActuary(d) {

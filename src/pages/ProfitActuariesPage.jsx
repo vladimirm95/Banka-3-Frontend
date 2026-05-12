@@ -57,17 +57,31 @@ export default function ProfitActuariesPage() {
       </div>
 
       {loading ? (
-        <div className="profit-state">Učitavanje…</div>
+        <div className="profit-state" role="status" aria-live="polite">
+          Učitavanje…
+        </div>
       ) : error ? (
-        <div className="profit-state profit-state--error">{error}</div>
+        <div className="profit-state profit-state--error" role="alert">
+          {error}
+        </div>
       ) : (
         <div className="profit-table-wrapper">
-          <table className="profit-table" aria-describedby="profit-search-label">
+          <span
+            aria-live="polite"
+            className="profit-sr-only"
+          >
+            {`${filtered.length} ${
+              filtered.length === 1 ? "rezultat" : "rezultata"
+            }`}
+          </span>
+          <table className="profit-table" aria-label="Profit po aktuaru">
             <thead>
               <tr>
-                <th>Ime</th>
-                <th>Prezime</th>
-                <th className="profit-amount-col">Profit (RSD)</th>
+                <th scope="col">Ime</th>
+                <th scope="col">Prezime</th>
+                <th scope="col" className="profit-amount-col">
+                  Profit (RSD)
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -81,18 +95,33 @@ export default function ProfitActuariesPage() {
                 </tr>
               ) : (
                 filtered.map((r) => {
-                  const positive = r.profit >= 0;
+                  const sign =
+                    r.profit > 0 ? "positive" : r.profit < 0 ? "negative" : "zero";
+                  const cls =
+                    sign === "positive"
+                      ? "profit-value--ok"
+                      : sign === "negative"
+                      ? "profit-value--loss"
+                      : "";
+                  const prefix = sign === "positive" ? "+" : "";
+                  const srLabel =
+                    sign === "negative"
+                      ? `Gubitak ${formatCurrency(Math.abs(r.profit), "RSD")}`
+                      : sign === "positive"
+                      ? `Profit ${formatCurrency(r.profit, "RSD")}`
+                      : `Bez profita`;
                   return (
                     <tr key={r.id}>
                       <td>{r.firstName}</td>
                       <td>{r.lastName}</td>
                       <td
-                        className={`profit-amount-col profit-value ${
-                          positive ? "profit-value--ok" : "profit-value--loss"
-                        }`}
+                        className={`profit-amount-col profit-value ${cls}`}
+                        aria-label={srLabel}
                       >
-                        {positive ? "+" : ""}
-                        {formatCurrency(r.profit, "RSD")}
+                        <span aria-hidden="true">
+                          {prefix}
+                          {formatCurrency(r.profit, "RSD")}
+                        </span>
                       </td>
                     </tr>
                   );

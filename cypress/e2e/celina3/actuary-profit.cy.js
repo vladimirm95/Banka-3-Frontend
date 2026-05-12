@@ -17,10 +17,9 @@ describe("Profit Banke — Performance aktuara (#235)", () => {
   });
 
   it("pretraga filtrira aktuare po imenu", () => {
-    cy.get(".profit-table tbody tr").its("length").as("initial");
-    cy.get("#profit-search").type("Milan");
+    cy.get("#profit-search").type("Milić");
     cy.get(".profit-table tbody tr").should("have.length", 1);
-    cy.get(".profit-table tbody tr").first().should("contain", "Milan");
+    cy.get(".profit-table tbody tr").first().should("contain", "Milan").and("contain", "Milić");
   });
 
   it("prikazuje praznu poruku za pretragu bez rezultata", () => {
