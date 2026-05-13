@@ -40,6 +40,7 @@ import CreateOrderPage from "../pages/CreateOrderPage.jsx";
 import MyOrdersPage from "../pages/MyOrdersPage.jsx";
 import OrdersReviewPage from "../pages/OrdersReviewPage.jsx";
 import CreateInvestmentFundPage from "../pages/CreateInvestmentFundPage.jsx";
+import ProfitActuariesPage from "../pages/ProfitActuariesPage.jsx";
 
 export default function AppRouter() {
   return (
@@ -73,6 +74,7 @@ export default function AppRouter() {
           <Route path="/clients/:id" element={<ProtectedRoute requiredRole="employee"><ClientDetailsPage /></ProtectedRoute>} />
           <Route path="/clients/edit/:id" element={<ProtectedRoute requiredRole="employee" requiredPermission="admin"><EditClientPage/></ProtectedRoute>}/>
           <Route path="/actuary-management" element={<ProtectedRoute requiredPermission="supervisor"><ActuaryManagementPage /></ProtectedRoute>} />
+          <Route path="/profit/actuaries" element={<ProtectedRoute requiredPermission="supervisor"><ProfitActuariesPage /></ProtectedRoute>} />
 
           {/* Securities listing is open to clients and employees alike. The
               detail page used to be employee-only, but the spec (p.45) lets
